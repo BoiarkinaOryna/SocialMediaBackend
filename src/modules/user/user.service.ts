@@ -1,13 +1,15 @@
 import { UserService as ServiceContract } from "./types/user.contracts";
 import { UserRepository } from "./user.repository";
 import { hash, compare } from "bcryptjs";
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import { env } from "../../config/env";
-import { CreateUserPayload, RegisterDto, registrationCodesType } from "./types/user.types";
+import { CreateUserPayload, RegisterDto, registrationCodesType, VerifyCodeDTO } from "./types/user.types";
 import { NotFoundError } from "../../errors";
 import { AuthenticationError, ConflictError } from "../../errors/app.errors";
+import { PRISMA_CLIENT } from "../../config/client";
+import nodemailer from "nodemailer";
 
-const RegistrationCodes: registrationCodesType[] = []
+// const RegistrationCodes: registrationCodesType[] = []
 
 export const UserService: ServiceContract = {
   login: async (credentials) => {
@@ -15,6 +17,9 @@ export const UserService: ServiceContract = {
     if (!user) {
       throw new NotFoundError("User");
     }
+    // if (!user.isVerified) {
+    //   throw new AuthenticationError("Email not verified");
+    // }
     const userWithPassword = await UserRepository.findByIdWithPassword(user.id);
     if (!userWithPassword) {
       throw new NotFoundError("User");
@@ -41,65 +46,50 @@ export const UserService: ServiceContract = {
     return { token };
   },
   register: async (credentials) => {
+  const existingUserByEmail = await UserRepository.findByEmail(
+    credentials.email,
+  );
+  if (existingUserByEmail) {
+    throw new ConflictError(`User with email ${credentials.email}`);
+  }
 
-    const existingUserByEmail = await UserRepository.findByEmail(
-      credentials.email,
-    );
-    if (existingUserByEmail) {
-      throw new ConflictError(`User with email ${credentials.email}`);
-    }
-    // const existingUserByUsername = await UserRepository.findByUsername(
-    //   credentials.username,
-    // );
-    // if (existingUserByUsername) {
-    //   throw new ConflictError(`User with username ${credentials.username}`);
-    // }
-    const hashedPassword = await hash(credentials.password, 10);
-    const userToCreate: CreateUserPayload = {
-      ...credentials,
-      password: hashedPassword,
-    };
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-            user: env.EMAIL,
-            pass: env.EMAIL_PASSWORD,
-        },
-    })
-    let code: string
-    while (true){
-        code = Math.floor(Math.random() * 1_000_000).toString().padStart(6, "0")
+  const hashedPassword = await hash(credentials.password, 10);
 
-        let exists = false
-        for (let passcode of RegistrationCodes){
-            if (passcode.code === code){
-                exists = true
-                break
-            }
-        }
-        
-        if (!exists) {
-            break
-        }
-    }
-    const info = await transporter.sendMail({
-        from: `"Drones for Everyone" <${env.EMAIL}>`,
-        to: credentials.email,
-        subject: "Here is your ",
-        // text: `Go to the link below to reset your password: http://localhost:8001/user/change-password?user_code=${code}`, // Plain-text version of the message
-        // html: `<p>Go to the link below to reset your password<br>http://localhost:8001/user/change-password?user_code=${code}</p>`, // HTML version of the message
-    })
-    RegistrationCodes.push({
-      "code": code,
-      "userEmail": credentials.email
-    })
+  const userToCreate: CreateUserPayload = {
+    ...credentials,
+    password: hashedPassword,
+  };
 
-    console.log(RegistrationCodes)
-    UserRepository.create(userToCreate);
-    return "EMAIL_SENT"
-  },
+  await UserRepository.create(userToCreate);
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  await PRISMA_CLIENT.verificationCode.create({
+    data: {
+      email: credentials.email,
+      code,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), 
+    },
+  });
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: env.EMAIL,
+      pass: env.EMAIL_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `"Your App" <${env.EMAIL}>`,
+    to: credentials.email,
+    subject: "Verification code",
+    text: `Your code: ${code}`,
+  });
+
+  return "EMAIL_SENT";
+},
   me: async (DTO) => {
     const user = await UserRepository.findById(DTO.userId);
     if (!user) {
@@ -114,5 +104,35 @@ export const UserService: ServiceContract = {
   updateMe: async (dto) => {
     return await UserRepository.updateUserAndProfile(dto);
   },
-  verifyCode: async () => {}
+  verifyCode: async (data: VerifyCodeDTO) => {
+  const { email, code } = data;
+
+  const record = await PRISMA_CLIENT.verificationCode.findFirst({
+    where: {
+      email,
+      code,
+      isUsed: false,
+    },
+  });
+
+  if (!record) {
+    throw new Error("Invalid code");
+  }
+
+  if (record.expiresAt < new Date()) {
+    throw new Error("Code expired");
+  }
+
+  await PRISMA_CLIENT.user.update({
+    where: { email },
+    data: { isVerified: true },
+  });
+
+  await PRISMA_CLIENT.verificationCode.update({
+    where: { id: record.id },
+    data: { isUsed: true },
+  });
+
+  return "VERIFIED";
+}
 };

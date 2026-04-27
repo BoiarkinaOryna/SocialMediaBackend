@@ -1,7 +1,7 @@
-import { type Prisma } from "@prisma/client";
+// import { type Prisma } from "@prisma/client";
 import { type InferType } from "yup";
 import { loginSchema, regSchema } from "../user.schema";
-
+import { Prisma } from "@prisma/client";
 export type User = Prisma.UserGetPayload<{
   omit: {
     password: true;
@@ -33,6 +33,7 @@ export type TokenDTO = {
   token: string;
 };
 export interface CreateProfileDTO {
+  userId: number;
   username: string;
   pseudonym: string;
 }
@@ -52,3 +53,7 @@ export type registrationCodesType = {
 }
 
 
+export interface VerifyCodeDTO {
+  email: string;
+  code: string;
+}

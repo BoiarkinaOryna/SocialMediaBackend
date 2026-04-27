@@ -32,3 +32,4 @@ UserRouter.post(
 
 UserRouter.patch("/me", authenticateMiddleware, UserController.updateMe);
 UserRouter.get("/me", authenticateMiddleware, UserController.me);
+UserRouter.post("/verify", UserController.verifyCode);

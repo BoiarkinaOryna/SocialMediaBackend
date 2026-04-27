@@ -1,8 +1,6 @@
 import type { UserRepository as RepoContract } from "./types/user.contracts";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
-import { CreateProfileDTO, CreateUserPayload, UpdateMeDTO, User } from "./types/user.types";
-// import { PrismaErrorCodes } from "@app-types/error-codes";
-// import { InternalServerError, NotFoundError } from "@errors/app.errors";
+import { CreateUserPayload, UpdateMeDTO, User } from "./types/user.types";
 import { PRISMA_CLIENT } from "../../config/client";
 import { PrismaErrorCodes } from "../../types/error-codes";
 import { InternalServerError, NotFoundError } from "../../errors";
@@ -138,14 +136,27 @@ export const UserRepository: RepoContract = {
       throw new InternalServerError();
     }
   },
-  async createProfile(data: CreateProfileDTO) {
+  async createProfile(data) {
+
+    // IF USER EXISTS
     return await PRISMA_CLIENT.profile.create({
       data: {
         username: data.username,
         pseudonym: data.pseudonym,
+        userId: data.userId,
       },
     });
   },
+    // async createProfile(data: CreateProfileDTO) {
+  //   return await PRISMA_CLIENT.profile.create({
+  //     data: {
+  //       username: data.username,
+  //       pseudonym: data.pseudonym,
+  //       userId: data.userId,
+  //     },
+  //   });
+  // },
+
 
   async updateUserAndProfile(data: UpdateMeDTO) {
     return await PRISMA_CLIENT.user.update({

@@ -68,14 +68,12 @@ export const UserController: UserControllerContract = {
       next(error);
     }
   },
-  verifyCode: async (req: Request, res: Response, next: NextFunction) => {
-    try{
-      const code = await UserService.verifyCode({
-        userId: res.locals.userId,
-        ...req.body,
-      })
-    }catch(error){
-      next(error);
-    }S
+  verifyCode: async (req, res, next) => {
+  try {
+    const result = await UserService.verifyCode(req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
   }
+}
 };
