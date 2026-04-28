@@ -1,6 +1,8 @@
 export enum PrismaErrorCodes {
 	UNIQUE = "P2002",
 	NOT_EXIST = "P2025",
+    RecordNotFound = "RecordNotFound",
+    UniqueConstraintViolation = "UniqueConstraintViolation",
 }
 
 export enum ErrorCodes {
