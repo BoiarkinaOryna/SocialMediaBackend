@@ -6,9 +6,6 @@ export type User = Prisma.UserGetPayload<{
   omit: {
     password: true;
   };
-   include: {
-    profile: true;  
-  };
 }>;
 
 export type CreateUserPayload = {

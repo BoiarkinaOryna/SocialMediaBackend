@@ -11,15 +11,16 @@ export const UserRepository: RepoContract = {
       const user = await PRISMA_CLIENT.user.findUnique({
         where: { email },
         omit: { password: true },
-        include: { profile: true },
       });
       return user;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
           case PrismaErrorCodes.NOT_EXIST:
-            throw new NotFoundError("User");
+            console.log("+ PrismaErrorCodes", PrismaErrorCodes)
+            return null
           default:
+            console.log("- PrismaErrorCodes", PrismaErrorCodes)
             throw new InternalServerError();
         }
       }
@@ -31,16 +32,11 @@ export const UserRepository: RepoContract = {
   },
   async findByUsername(username) {
     try {
-      const profile = await PRISMA_CLIENT.profile.findUnique({
+      const profile = await PRISMA_CLIENT.user.findUnique({
         where: { username },
-        include: {
-          user: {
-            omit: { password: true },
-            include: { profile: true },
-          },
-        },
+        omit: { password: true },
       });
-      return profile?.user ?? null;
+      return profile ?? null;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
@@ -83,17 +79,8 @@ export const UserRepository: RepoContract = {
       data: {
         email: data.email,
         password: data.password,
-        profile: {
-          // create: {
-          //   username: data.username,
-          //   firstName: data.name,
-          //   lastName: data.surname,
-          //   avatar: data.avatar,
-          // }
-        }
       },
       omit: { password: true },
-      include: { profile: true },
     });
     return user;
   } catch (error) {
@@ -118,7 +105,6 @@ export const UserRepository: RepoContract = {
         omit: {
           password: true,
         },
-        include: { profile: true },
       });
       return user;
     } catch (error) {
@@ -137,44 +123,25 @@ export const UserRepository: RepoContract = {
     }
   },
   async createProfile(data) {
-
-    // IF USER EXISTS
-    return await PRISMA_CLIENT.profile.create({
+    return await PRISMA_CLIENT.user.update({
+      where: {id: data.userId},
       data: {
         username: data.username,
         pseudonym: data.pseudonym,
-        userId: data.userId,
       },
     });
   },
-    // async createProfile(data: CreateProfileDTO) {
-  //   return await PRISMA_CLIENT.profile.create({
-  //     data: {
-  //       username: data.username,
-  //       pseudonym: data.pseudonym,
-  //       userId: data.userId,
-  //     },
-  //   });
-  // },
-
 
   async updateUserAndProfile(data: UpdateMeDTO) {
     return await PRISMA_CLIENT.user.update({
       where: { id: data.userId },
       data: {
         email: data.email,
-        profile: {
-          update: {
-            username: data.username,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            avatar: data.avatar,
-          },
-        },
-      },
-      include: {
-        profile: true,
-      },
+          username: data.username,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          avatar: data.avatar,
+      }
     });
   },
 };

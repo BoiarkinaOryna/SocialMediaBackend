@@ -18,22 +18,13 @@ model User {
   password   String
   isVerified Boolean @default(false)
 
-  profile Profile?
-
   createdAt DateTime @default(now())
   albums    Album[]
-}
-
-model Profile {
-  id        Int     @id @default(autoincrement())
-  username  String  @unique
+  username  String?  @unique
   pseudonym String?
   firstName String?
   lastName  String?
   avatar    String?
-
-  user   User @relation(fields: [userId], references: [id])
-  userId Int  @unique
 }
 
 model VerificationCode {
