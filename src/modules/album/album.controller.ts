@@ -52,4 +52,36 @@ export const AlbumController: AlbumControllerContracts = {
       next(error);
     }
   },
+  getAlbums: async (req, res, next) => {
+    try {
+      const albums = await AlbumService.getAlbums(res.locals.userId);
+      res.json(albums);
+    } catch (e) {
+      next(e);
+    }
+  },
+  
+  addImage: async (req, res, next) => {
+    try {
+      const result = await AlbumService.addImage(req.body);
+      res.json(result);
+    } catch (e) {
+      next(e);
+    }
+  },
+  
+  deleteAlbum: async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+  
+      const result = await AlbumService.deleteAlbum(
+        id,
+        res.locals.userId
+      );
+  
+      res.json(result);
+    } catch (e) {
+      next(e);
+    }
+  },
 };

@@ -1,5 +1,5 @@
 import { PRISMA_CLIENT } from "../../config/client";
-import { AlbumInfo, UpdateAlbum } from "./types/album.types";
+import { addImageDTO, AlbumInfo, UpdateAlbum } from "./types/album.types";
 
 export const AlbumRepository = {
   async create(data: AlbumInfo & { userId: number }) {
@@ -41,8 +41,29 @@ export const AlbumRepository = {
       throw handlePrismaError(error, "Album");
     }
   },
+  getAlbums: async (userId: number) => {
+    return PRISMA_CLIENT.album.findMany({
+      where: { userId },
+    });
+  },
+  
+  addImage: async (data: addImageDTO) => {
+    return PRISMA_CLIENT.albumImage.create({
+      data: {
+        image: data.image,
+        albumId: data.albumId,
+      },
+    });
+  },
+  
+  deleteAlbum: async (id: number) => {
+    return PRISMA_CLIENT.album.delete({
+      where: { id },
+    });
+  },
 };
 
 function handlePrismaError(error: any, entityName: string) {
   throw new Error("Function not implemented.");
+  
 }
