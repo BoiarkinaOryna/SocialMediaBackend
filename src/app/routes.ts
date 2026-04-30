@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { UserRouter } from "../modules/user/user.routes";
+import { AlbumRouter } from "../modules/album/album.routes";
+import { authenticateMiddleware } from "../middlewares";
 
 export const router = Router();
 
@@ -7,3 +9,5 @@ router.get("/health", (req, res) => {
 	res.json({ status: "ok", timestamp: Date.now() });
 });
 router.use("/users/", UserRouter);
+
+router.use("/albums", authenticateMiddleware, AlbumRouter);
