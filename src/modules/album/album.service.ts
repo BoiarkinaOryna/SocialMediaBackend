@@ -1,7 +1,7 @@
 import { AlbumRepository } from "./album.repository";
 import { NotFoundError } from "../../errors";
 import { addImageDTO, AlbumInfo, UpdateAlbum } from "./types/album.types";
-
+///
 export const AlbumService = {
   create: async (data: AlbumInfo & { userId: number }) => {
     return await AlbumRepository.create(data);
