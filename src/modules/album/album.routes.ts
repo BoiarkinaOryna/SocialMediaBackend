@@ -4,7 +4,8 @@ import { authenticateMiddleware } from "../../middlewares";
 
 export const AlbumRouter = Router();
 
-AlbumRouter.post("/", AlbumController.create);
-AlbumRouter.patch("/:id", AlbumController.update);
+AlbumRouter.post("/", authenticateMiddleware, AlbumController.create);
+AlbumRouter.get("/", authenticateMiddleware, AlbumController.getAlbums)
+AlbumRouter.patch("/:id", authenticateMiddleware, AlbumController.update);
 AlbumRouter.get("/:id", AlbumController.getInfo);
-AlbumRouter.delete("/:id", AlbumController.deleteAlbum)
+AlbumRouter.post("/image", authenticateMiddleware, AlbumController.addImage);

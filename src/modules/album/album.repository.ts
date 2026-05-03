@@ -44,6 +44,9 @@ export const AlbumRepository = {
   getAlbums: async (userId: number) => {
     return PRISMA_CLIENT.album.findMany({
       where: { userId },
+      include: {
+        images: true,
+      },
     });
   },
   

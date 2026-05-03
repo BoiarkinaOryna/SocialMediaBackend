@@ -7,6 +7,7 @@ export const PostController: PostControllerContracts = {
     create: async function (req, res, next) {
         try {
             const userId = res.locals.userId
+            console.log("create post data:", userId, req.body)
             await PostService.create(userId, req.body)
             res.status(201).json()
         } catch (error){
@@ -18,8 +19,8 @@ export const PostController: PostControllerContracts = {
             const takeRaw = req.query.take
             const pageRaw = req.query.page
 
-            const take = takeRaw !== undefined ? Number(takeRaw) : undefined
-            const page = pageRaw !== undefined ? Number(pageRaw) : undefined
+            const take = takeRaw !== undefined ? Number(takeRaw) : 15
+            const page = pageRaw !== undefined ? Number(pageRaw) : 1
             if (take && isNaN(+take)){
                 throw new BadRequestError
             }
@@ -40,8 +41,9 @@ export const PostController: PostControllerContracts = {
             const takeRaw = req.query.take
             const pageRaw = req.query.page
 
-            const take = takeRaw !== undefined ? Number(takeRaw) : undefined
-            const page = pageRaw !== undefined ? Number(pageRaw) : undefined
+            const take = takeRaw !== undefined ? Number(takeRaw) : 15
+            const page = pageRaw !== undefined ? Number(pageRaw) : 1
+
             if (take && isNaN(+take)){
                 throw new BadRequestError
             }

@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { AlbumService } from "./album.service";
 import { AlbumInfo, UpdateAlbum } from "./types/album.types";
 import { AlbumControllerContracts } from "./types/album.contracts";
+import fs from "fs";
+import path from "path";
 export const AlbumController: AlbumControllerContracts = {
   create: async (
     req: Request<object, any, AlbumInfo>,
@@ -61,25 +63,40 @@ export const AlbumController: AlbumControllerContracts = {
     }
   },
   
+
+
   addImage: async (req, res, next) => {
     try {
-      const result = await AlbumService.addImage(req.body);
+      const { image, albumId } = req.body;
+
+      const fileName = `img_${Date.now()}.jpg`;
+      const filePath = path.join("uploads", fileName);
+
+      const buffer = Buffer.from(image, "base64");
+
+      fs.writeFileSync(filePath, buffer);
+
+      const result = await AlbumService.addImage({
+        image: fileName,
+        albumId,
+      });
+
       res.json(result);
     } catch (e) {
       next(e);
     }
-  },
+},
   
   deleteAlbum: async (req, res, next) => {
     try {
       const id = Number(req.params.id);
   
-      await AlbumService.deleteAlbum(
+      const result = await AlbumService.deleteAlbum(
         id,
         res.locals.userId
       );
   
-      res.status(204);
+      res.json(result);
     } catch (e) {
       next(e);
     }

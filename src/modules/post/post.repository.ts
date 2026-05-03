@@ -9,7 +9,7 @@ export const PostRepository: PostRepositoryContracts = {
             await PRISMA_CLIENT.post.create({
                 data: {
                     user: {
-                        connect: { id: 10 }
+                        connect: { id }
                     },
                     ...data
                 }
@@ -21,10 +21,10 @@ export const PostRepository: PostRepositoryContracts = {
             throw new InternalServerError();
         }
     },
-    getAll: async function (take?, page?){
+    getAll: async function (take, page){
         try{
             const posts = await PRISMA_CLIENT.post.findMany({
-                skip: page,
+                skip: (take - take * page),
                 take
             })
             return posts
@@ -35,13 +35,14 @@ export const PostRepository: PostRepositoryContracts = {
             throw new InternalServerError();
         }
     },
-    getMy: async function (id, take?, page?) {
+    getMy: async function (id, take, page) {
         try{
             const posts = await PRISMA_CLIENT.post.findMany({
                 where: {userId: id},
-                skip: page,
+                skip: (take - take * page),
                 take
             })
+            console.log("my posts", posts)
             return posts
         } catch (error){
             if (error instanceof Error) {
