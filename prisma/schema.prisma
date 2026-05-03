@@ -20,6 +20,7 @@ model User {
 
   createdAt DateTime @default(now())
   albums    Album[]
+  posts     Post[]
   username  String?  @unique
   pseudonym String?
   firstName String?
@@ -61,4 +62,17 @@ model Image {
   // post Post? @relation(fields: [postId], references: [id])
   // meessage String?
   // message Message? @relation(fields: [messageId], references: [id])
+  post    Post?  @relation(fields: [postId], references: [id])
+  postId  Int?
+}
+
+model Post {
+  id     Int     @id @default(autoincrement())
+  title  String
+  topic  String?
+  text   String?
+  url    String?
+  images Image[]
+  userId Int?
+  user   User?   @relation(fields: [userId], references: [id])
 }

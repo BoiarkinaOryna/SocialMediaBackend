@@ -17,10 +17,8 @@ export const UserRepository: RepoContract = {
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
           case PrismaErrorCodes.NOT_EXIST:
-            console.log("+ PrismaErrorCodes", PrismaErrorCodes)
             return null
           default:
-            console.log("- PrismaErrorCodes", PrismaErrorCodes)
             throw new InternalServerError();
         }
       }
@@ -74,30 +72,22 @@ export const UserRepository: RepoContract = {
     }
   },
   async create(data: CreateUserPayload) {
-  try {
-    const user = await PRISMA_CLIENT.user.create({
-      data: {
-        email: data.email,
-        password: data.password,
-      },
-      omit: { password: true },
-    });
-    return user;
-  } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      switch (error.code) {
-        case PrismaErrorCodes.NOT_EXIST:
-          throw new NotFoundError("User");
-        default:
-          throw new InternalServerError();
+    try {
+      const user = await PRISMA_CLIENT.user.create({
+        data: {
+          email: data.email,
+          password: data.password,
+        },
+        omit: { password: true },
+      });
+      return user;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerError(error.message);
       }
+      throw new InternalServerError();
     }
-    if (error instanceof Error) {
-      throw new InternalServerError(error.message);
-    }
-    throw new InternalServerError();
-  }
-},
+  },
   findById: function (id: number): Promise<User | null> {
     try {
       const user = PRISMA_CLIENT.user.findUnique({
@@ -137,10 +127,11 @@ export const UserRepository: RepoContract = {
       where: { id: data.userId },
       data: {
         email: data.email,
-          username: data.username,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          avatar: data.avatar,
+        username: data.username,
+        firstName: data.name,
+        lastName: data.surname,
+        avatar: data.avatar,
+        // birthDate: data.birthDate
       }
     });
   },

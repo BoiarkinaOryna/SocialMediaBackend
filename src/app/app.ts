@@ -4,7 +4,6 @@ import { env } from "../config/env";
 import { router } from "./routes";
 import { logMiddleware, errorMiddleware } from "../middlewares";
 import { uploadDir } from "../config/path";
-import { AlbumRouter } from "../modules/album/album.routes";
 
 const app: Express = express();
 app.use(cors({ origin: "" }));
