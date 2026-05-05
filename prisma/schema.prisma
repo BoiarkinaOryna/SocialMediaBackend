@@ -9,70 +9,230 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  // url      = env("DATABASE_URL")
 }
 
 model User {
-  id         Int     @id @default(autoincrement())
-  email      String  @unique
-  password   String
-  isVerified Boolean @default(false)
+  id       Int     @id @default(autoincrement())
+  username String? @unique
+  email    String  @unique
+  password String
 
-  createdAt DateTime @default(now())
-  albums    Album[]
-  posts     Post[]
-  username  String?  @unique
-  pseudonym String?
-  firstName String?
-  lastName  String?
-  avatar    String?
+  emailVerifications EmailVerification[]
+  profiles           Profile[]
+
+  chats        chat_app_chat_users[]
+  readMessages chat_app_message_readers[]
+
+  posts      Post[]
+  postLikes  PostLike[]
+  postHearts PostHeart[]
+  postViews  PostView[]
+
+  sentMessages Message[] @relation("sender")
+  adminChats   Chat[]    @relation("admin")
 }
 
-model VerificationCode {
-  id        Int      @id @default(autoincrement())
-  email     String
-  code      String
-  isUsed    Boolean  @default(false)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+model EmailVerification {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
-  @@index([email])
+  code       String
+  new_email  String?
+  expires_at DateTime
+}
+
+model Profile {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  birth_date String
+  signature  String?
+  avatar     String?
+  pseudonym  String?
+
+  sentRequests     FriendsRequest[] @relation("from_profile")
+  receivedRequests FriendsRequest[] @relation("to_profile")
+
+  albums Album[]
+
+  is_image_signature Boolean
+  is_text_signature  Boolean
+}
+
+model FriendsRequest {
+  id Int @id @default(autoincrement())
+
+  fromProfileId Int
+  toProfileId   Int
+
+  from_profile Profile @relation("from_profile", fields: [fromProfileId], references: [id])
+  to_profile   Profile @relation("to_profile", fields: [toProfileId], references: [id])
+
+  created_at DateTime @default(now())
 }
 
 model Album {
-  id    Int    @id @default(autoincrement())
-  title String
+  id         Int      @id @default(autoincrement())
+  name       String
+  theme      String
+  year       Int
+  created_at DateTime @default(now())
+  is_shown   Boolean
+  is_default Boolean
 
-  topics   String
-  year     Int
-  isHidden Boolean @default(false)
-  // images Image[]
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id])
 
-  userId Int
-  user   User    @relation(fields: [userId], references: [id])
-  images Image[]
+  images AlbumImage[]
 }
 
-model Image {
-  id      Int    @id @default(autoincrement())
-  path    String
+model AlbumImage {
+  id         Int      @id @default(autoincrement())
+  image      String
+  created_at DateTime @default(now())
+  is_shown   Boolean
+
   albumId Int
-  album   Album  @relation(fields: [albumId], references: [id])
-  // postId Int?
-  // post Post? @relation(fields: [postId], references: [id])
-  // meessage String?
-  // message Message? @relation(fields: [messageId], references: [id])
-  post    Post?  @relation(fields: [postId], references: [id])
-  postId  Int?
+  album   Album @relation(fields: [albumId], references: [id])
 }
 
 model Post {
-  id     Int     @id @default(autoincrement())
-  title  String
-  topic  String?
-  text   String?
-  url    String?
-  images Image[]
-  userId Int?
-  user   User?   @relation(fields: [userId], references: [id])
+  id         Int      @id @default(autoincrement())
+  title      String
+  topic      String?
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+
+  tags   post_app_post_tags[]
+  images PostImage[]
+  likes  PostLike[]
+  hearts PostHeart[]
+  views  PostView[]
+  links  PostLink[]
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  posts post_app_post_tags[]
+}
+
+model PostImage {
+  id               Int    @id @default(autoincrement())
+  original_image   String
+  compressed_image String
+
+  postId Int
+  post   Post @relation(fields: [postId], references: [id])
+}
+
+model PostLike {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  postId Int
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+}
+
+model PostHeart {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  postId Int
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+}
+
+model PostView {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  postId Int
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+}
+
+model PostLink {
+  id  Int    @id @default(autoincrement())
+  url String
+
+  postId Int
+  post   Post @relation(fields: [postId], references: [id])
+}
+
+model Chat {
+  id       Int     @id @default(autoincrement())
+  name     String?
+  is_group Boolean
+  avatar   String
+
+  adminId Int?
+  admin   User? @relation("admin", fields: [adminId], references: [id])
+
+  users    chat_app_chat_users[]
+  messages Message[]
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  text       String
+  created_at DateTime @default(now())
+
+  chatId Int
+  chat   Chat @relation(fields: [chatId], references: [id])
+
+  senderId Int
+  sender   User @relation("sender", fields: [senderId], references: [id])
+
+  readers chat_app_message_readers[]
+  images  MessageImage[]
+}
+
+model MessageImage {
+  id    Int    @id @default(autoincrement())
+  image String
+
+  messageId Int
+  message   Message @relation(fields: [messageId], references: [id])
+}
+
+model chat_app_chat_users {
+  id Int @id @default(autoincrement())
+
+  chatId Int
+  userId Int
+
+  chat Chat @relation(fields: [chatId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+model chat_app_message_readers {
+  id Int @id @default(autoincrement())
+
+  messageId Int
+  userId    Int
+
+  message Message @relation(fields: [messageId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+model post_app_post_tags {
+  id Int @id @default(autoincrement())
+
+  postId Int
+  tagId  Int
+
+  post Post @relation(fields: [postId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
 }
