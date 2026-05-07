@@ -18,7 +18,6 @@ app.use(router);
 
 app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 console.log("use uploalds:", path.join(__dirname, "../../uploads"))
-app.use("/albums", AlbumRouter);
 app.use(errorMiddleware);
 console.log(uploadDir);
 app.listen(env.PORT, env.HOST, () => {

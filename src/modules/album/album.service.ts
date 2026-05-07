@@ -1,32 +1,36 @@
 import { AlbumRepository } from "./album.repository";
 import { NotFoundError } from "../../errors";
 import { addImageDTO, AlbumInfo, UpdateAlbum } from "./types/album.types";
+import { AlbumServiceContract } from "./types/album.contracts";
+import { UserRepository } from "../user/user.repository";
+import { ForbiddenError } from "../../errors/app.errors";
 ///
-export const AlbumService = {
-  create: async (data: AlbumInfo & { userId: number }) => {
-    return await AlbumRepository.create(data);
+export const AlbumService: AlbumServiceContract = {
+  create: async (data, userId) => {
+    const profileId = await UserRepository.findProfileIdByUserId(userId)
+    return await AlbumRepository.create(data, profileId);
   },
 
-  update: async (data: UpdateAlbum & { id: number }) => {
-    const album = await AlbumRepository.getById(data.id);
+  update: async (data, id) => {
+    const album = await AlbumRepository.getById(id);
 
     if (!album) {
       throw new NotFoundError("Album");
     }
 
-    return await AlbumRepository.update(data);
+    return await AlbumRepository.update(data, id);
   },
 
-  getInfo: async (data: { id: number }) => {
-    const album = await AlbumRepository.getById(data.id);
+  getInfo: async (id) => {
+    const album = await AlbumRepository.getById(id);
 
     if (!album) {
       throw new NotFoundError("Album");
     }
 
     return {
-      title: album.title,
-      topic: album.topics,
+      name: album.name,
+      theme: album.theme,
       year: album.year,
     };
   },
@@ -39,10 +43,11 @@ export const AlbumService = {
   },
   
   deleteAlbum: async (id: number, userId: number) => {
+    const profileId = await UserRepository.findProfileIdByUserId(userId)
     const album = await AlbumRepository.getById(id);
   
-    if (!album || album.userId !== userId) {
-      throw new NotFoundError("Album");
+    if (album.profileId !== profileId) {
+      throw new ForbiddenError("Can't delete another user's album")
     }
   
     return AlbumRepository.deleteAlbum(id);

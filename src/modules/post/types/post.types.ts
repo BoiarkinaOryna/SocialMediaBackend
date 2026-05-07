@@ -5,6 +5,6 @@ export type Post = Prisma.PostGetPayload<{}>
 export type PostCredentials = {
     title: string,
     topic?: string,
-    text?: string,
-    url?: string
+    content: string,
+    links?: string[]
 }

@@ -27,8 +27,7 @@ export const UserController: UserControllerContract = {
     next,
   ) {
     try {
-      
-      const user = await UserService.register({
+      await UserService.register({
         ...req.body,
         // avatar: req.file?.filename,
       });

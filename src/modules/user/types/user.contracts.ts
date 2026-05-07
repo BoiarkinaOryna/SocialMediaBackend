@@ -30,7 +30,8 @@
     findById: (id: number) => Promise<User | null>;
     create: (data: CreateUserPayload) => Promise<User>;
     createProfile: (data: CreateProfileDTO) => Promise<any>;
-    updateUserAndProfile: (data: UpdateMeDTO) => Promise<any>;
+    updateUserAndProfile: (data: UpdateMeDTO, profileId: number) => Promise<any>;
+    findProfileIdByUserId: (userId: number) => Promise<number>
   }
 
   export interface UserController {

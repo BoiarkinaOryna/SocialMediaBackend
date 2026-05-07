@@ -3,8 +3,8 @@ import { Prisma } from "@prisma/client";
 export type Album = Prisma.AlbumGetPayload<{}>;
 
 export type AlbumInfo = {
-  title: string;
-  topic: string;
+  name: string;
+  theme: string;
   year: number;
 };
 

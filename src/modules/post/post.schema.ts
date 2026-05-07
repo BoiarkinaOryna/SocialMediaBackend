@@ -6,5 +6,5 @@ export const postSchema = yup.object({
         // .required("Title is required"),
     topic: yup.string(),
     text: yup.string(),
-    url: yup.string()
+    links: yup.array().of(yup.string())
 })

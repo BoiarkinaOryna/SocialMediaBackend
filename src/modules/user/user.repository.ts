@@ -34,7 +34,7 @@ export const UserRepository: RepoContract = {
         where: { username },
         omit: { password: true },
       });
-      return profile ?? null;
+      return profile;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
@@ -113,26 +113,86 @@ export const UserRepository: RepoContract = {
     }
   },
   async createProfile(data) {
-    return await PRISMA_CLIENT.user.update({
-      where: {id: data.userId},
+    await PRISMA_CLIENT.user.update({
+      where: {
+        id: data.userId
+      },
       data: {
-        username: data.username,
+        username: data.username
+      }
+    })
+
+    return await PRISMA_CLIENT.profile.create({
+      data: {
+        userId: data.userId,
         pseudonym: data.pseudonym,
       },
     });
   },
 
-  async updateUserAndProfile(data: UpdateMeDTO) {
-    return await PRISMA_CLIENT.user.update({
-      where: { id: data.userId },
-      data: {
-        email: data.email,
-        username: data.username,
-        firstName: data.name,
-        lastName: data.surname,
-        avatar: data.avatar,
-        // birthDate: data.birthDate
+  async updateUserAndProfile(data, profileId) {
+    try{
+      try {
+        await PRISMA_CLIENT.profile.update({
+          where: {id: profileId},
+          data: {
+            // firstName: data.name,
+            // lastName: data.surname,
+            avatar: data.avatar,
+            birth_date: data.birthDate
+          }
+        })
+      } catch(error){
+        if (error instanceof PrismaClientKnownRequestError) {
+          switch (error.code) {
+            case PrismaErrorCodes.NOT_EXIST:
+              throw new NotFoundError("Profile");
+            default:
+              throw new InternalServerError();
+          }
+        }
+        if (error instanceof Error) {
+          throw new InternalServerError(error.message);
+        }
+        throw new InternalServerError();
       }
-    });
+      return await PRISMA_CLIENT.user.update({
+        where: { id: data.userId },
+        data: {
+          email: data.email,
+          username: data.username,
+        }
+      });
+    } catch (error){
+      if (error instanceof PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case PrismaErrorCodes.NOT_EXIST:
+            throw new NotFoundError("User");
+          default:
+            throw new InternalServerError();
+        }
+      }
+      if (error instanceof Error) {
+        throw new InternalServerError(error.message);
+      }
+      throw new InternalServerError();
+    }
   },
+  async findProfileIdByUserId(userId) {
+    try{
+      const profile = await PRISMA_CLIENT.profile.findFirst({
+        where: {userId}
+      })
+      if (profile){
+        return profile.id
+      } else{
+        throw new NotFoundError("Profile")
+      }
+    } catch (error){
+      if (error instanceof Error) {
+        throw new InternalServerError(error.message);
+      }
+      throw new InternalServerError();
+    }
+  }
 };

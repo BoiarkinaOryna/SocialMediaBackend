@@ -34,7 +34,7 @@ model User {
 
 model EmailVerification {
   id     Int  @id @default(autoincrement())
-  userId Int
+  userId Int  @unique
   user   User @relation(fields: [userId], references: [id])
 
   code       String
@@ -47,7 +47,7 @@ model Profile {
   userId Int
   user   User @relation(fields: [userId], references: [id])
 
-  birth_date String
+  birth_date String?
   signature  String?
   avatar     String?
   pseudonym  String?
@@ -57,8 +57,8 @@ model Profile {
 
   albums Album[]
 
-  is_image_signature Boolean
-  is_text_signature  Boolean
+  is_image_signature Boolean @default(false)
+  is_text_signature  Boolean @default(false)
 }
 
 model FriendsRequest {
@@ -79,8 +79,8 @@ model Album {
   theme      String
   year       Int
   created_at DateTime @default(now())
-  is_shown   Boolean
-  is_default Boolean
+  is_shown   Boolean @default(true)
+  is_default Boolean @default(false)
 
   profileId Int
   profile   Profile @relation(fields: [profileId], references: [id])
@@ -92,7 +92,7 @@ model AlbumImage {
   id         Int      @id @default(autoincrement())
   image      String
   created_at DateTime @default(now())
-  is_shown   Boolean
+  is_shown   Boolean @default(true)
 
   albumId Int
   album   Album @relation(fields: [albumId], references: [id])

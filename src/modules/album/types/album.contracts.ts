@@ -40,9 +40,9 @@ export interface AlbumControllerContracts {
   // the image remains, only relation model object is deleted // 3
 }
 
-export interface AlbumService {
-  creaate: (createAlbum: AlbumInfo) => Promise<any>;
-  update: (UpdateAlbum: UpdateAlbum) => Promise<any>;
+export interface AlbumServiceContract {
+  create: (data: AlbumInfo, userId: number) => Promise<any>;
+  update: (data: UpdateAlbum, id: number) => Promise<any>;
   getInfo: (id: number) => Promise<AlbumInfo>;
   getAlbums: (userId: number) => Promise<Album[]>;
   addImage: (data: addImageDTO) => Promise<any>;
@@ -50,11 +50,12 @@ export interface AlbumService {
   // deleteAlbum: (id: number) => Promise<Album[]>;
 }
 
-export interface AlbumRepository {
-  create: (createAlbum: AlbumInfo) => Promise<any>;
-  update: (UpdateAlbum: UpdateAlbum) => Promise<any>;
+export interface AlbumRepositoryContract {
+  create: (createAlbum: AlbumInfo, profileId: number) => Promise<any>;
+  getById: (id: number) => Promise<Album | null>
+  update: (data: UpdateAlbum, id: number) => Promise<any>;
   getInfo: (id: number) => Promise<AlbumInfo>;
-  getAlbums: (userId: number) => Promise<Album[]>;
+  getAlbums: (userId: number) => Promise<Album[] | null>;
   addImage: (data: addImageDTO) => Promise<any>;
   deleteAlbum: (id: number) => Promise<any>;
   // deleteAlbum: (id: number) => Promise<any>;

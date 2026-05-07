@@ -60,15 +60,15 @@ export const UserService: ServiceContract = {
       password: hashedPassword,
     };
 
-    await UserRepository.create(userToCreate);
+    const user = await UserRepository.create(userToCreate);
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    await PRISMA_CLIENT.verificationCode.create({
+    await PRISMA_CLIENT.emailVerification.create({
       data: {
-        email: credentials.email,
+        userId: user.id,
         code,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000), 
+        expires_at: new Date(Date.now() + 10 * 60 * 1000), 
       },
     });
     const transporter = nodemailer.createTransport({
@@ -102,36 +102,38 @@ export const UserService: ServiceContract = {
   },
 
   updateMe: async (dto) => {
-    return await UserRepository.updateUserAndProfile(dto);
+    const profileId = await UserRepository.findProfileIdByUserId(dto.userId)
+    return await UserRepository.updateUserAndProfile(dto, profileId);
   },
   verifyCode: async (data: VerifyCodeDTO) => {
-  const { email, code } = data;
+    const { email, code } = data;
 
-  const record = await PRISMA_CLIENT.verificationCode.findFirst({
-    where: {
-      email,
-      code,
-      isUsed: false,
-    },
-  });
+    const user = await UserRepository.findByEmail(email)
+    if (!user) throw new NotFoundError("User")
+    const record = await PRISMA_CLIENT.emailVerification.findFirst({
+      where: {
+        userId: user.id,
+        code,
+      },
+    });
 
-  if (!record) {
-    throw new Error("Invalid code");
-  }
+    if (!record) {
+      throw new Error("Invalid code");
+    }
 
-  if (record.expiresAt < new Date()) {
-    throw new Error("Code expired");
-  }
+    if (record.expires_at < new Date()) {
+      throw new Error("Code expired");
+    }
 
-  await PRISMA_CLIENT.user.update({
-    where: { email },
-    data: { isVerified: true },
-  });
+    // await PRISMA_CLIENT.user.update({
+    //   where: { email },
+    //   data: { isVerified: true },
+    // });
 
-  await PRISMA_CLIENT.verificationCode.update({
-    where: { id: record.id },
-    data: { isUsed: true },
-  });
+    // await PRISMA_CLIENT.emailVerification.update({
+    //   where: { id: record.id },
+    //   data: { : true },
+    // });
 
   return "VERIFIED";
 }

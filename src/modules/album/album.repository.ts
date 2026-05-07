@@ -1,15 +1,19 @@
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { PRISMA_CLIENT } from "../../config/client";
+import { InternalServerError, NotFoundError } from "../../errors";
+import { PrismaErrorCodes } from "../../types/error-codes";
+import { AlbumRepositoryContract } from "./types/album.contracts";
 import { addImageDTO, AlbumInfo, UpdateAlbum } from "./types/album.types";
 
-export const AlbumRepository = {
-  async create(data: AlbumInfo & { userId: number }) {
+export const AlbumRepository: AlbumRepositoryContract = {
+  async create(data, profileId) {
     try {
-      return await PRISMA_CLIENT.album.create({
+      await PRISMA_CLIENT.album.create({
         data: {
-          title: data.title,
-          topics: data.topic,
+          name: data.name,
+          theme: data.theme,
           year: data.year,
-          userId: data.userId,
+          profileId,
         },
       });
     } catch (error) {
@@ -17,13 +21,13 @@ export const AlbumRepository = {
     }
   },
 
-  async update(data: UpdateAlbum & { id: number }) {
+  async update(data, id) {
     try {
-      return await PRISMA_CLIENT.album.update({
-        where: { id: data.id },
+      await PRISMA_CLIENT.album.update({
+        where: { id },
         data: {
-          title: data.title,
-          topics: data.topic,
+          name: data.theme,
+          theme: data.theme,
           year: data.year,
         },
       });
@@ -41,32 +45,70 @@ export const AlbumRepository = {
       throw handlePrismaError(error, "Album");
     }
   },
-  getAlbums: async (userId: number) => {
-    return PRISMA_CLIENT.album.findMany({
-      where: { userId },
-      include: {
-        images: true,
-      },
-    });
+  getAlbums: async (profileId: number) => {
+    try{ 
+      const albums = PRISMA_CLIENT.album.findMany({
+        where: { profileId },
+        include: {
+          images: true,
+        },
+      });
+      return albums
+    } catch (error){
+      if (error instanceof PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case PrismaErrorCodes.NOT_EXIST:
+            return null
+          default:
+            throw new InternalServerError();
+        }
+      }
+      if (error instanceof Error) {
+        throw new InternalServerError(error.message);
+      }
+      throw new InternalServerError();
+    }
   },
   
   addImage: async (data: addImageDTO) => {
-    return PRISMA_CLIENT.image.create({
-      data: {
-        path: data.image,
-        albumId: data.albumId,
-      },
-    });
+    try{ 
+      PRISMA_CLIENT.albumImage.create({
+        data: {
+          image: data.image,
+          albumId: data.albumId,
+        },
+      });
+    } catch (error){
+      if (error instanceof Error) {
+        throw new InternalServerError(error.message);
+      }
+      throw new InternalServerError();
+    }
   },
   
   deleteAlbum: async (id: number) => {
-    return PRISMA_CLIENT.album.delete({
-      where: { id },
-    });
+    try{ 
+      PRISMA_CLIENT.album.delete({
+        where: { id },
+      });
+    } catch (error){
+      if (error instanceof PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case PrismaErrorCodes.NOT_EXIST:
+            return null
+          default:
+            throw new InternalServerError();
+        }
+      }
+      if (error instanceof Error) {
+        throw new InternalServerError(error.message);
+      }
+      throw new InternalServerError();
+    }
   },
 };
 
 function handlePrismaError(error: any, entityName: string) {
-  throw new Error("Function not implemented.");
-  
+  console.log("handlePrismaError:", error)
+  throw new NotFoundError(entityName)
 }

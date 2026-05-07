@@ -39,17 +39,16 @@ export interface UpdateMeDTO {
   userId: number;
   email?: string;
   username?: string;
-  name?: string;
-  surname?: string;
+  // name?: string;
+  // surname?: string;
   avatar?: string;
-  // birthDate?: string
+  birthDate?: string
 }
 
 export type registrationCodesType = {
   code: string;
   userEmail: string;
 }
-
 
 export interface VerifyCodeDTO {
   email: string;

@@ -10,5 +10,5 @@ router.get("/health", (req, res) => {
 	res.json({ status: "ok", timestamp: Date.now() });
 });
 router.use("/users", UserRouter);
-router.use("/albums", authenticateMiddleware, AlbumRouter);
-router.use("/posts", authenticateMiddleware, PostRouter)
+// router.use("/albums", authenticateMiddleware, AlbumRouter);
+// router.use("/posts", authenticateMiddleware, PostRouter)
