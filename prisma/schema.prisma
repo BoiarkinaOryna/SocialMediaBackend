@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
   provider = "prisma-client-js"
@@ -22,6 +19,7 @@ model User {
 
   createdAt DateTime @default(now())
   albums    Album[]
+   posts      Post[]
 }
 
 model Profile {
@@ -34,6 +32,9 @@ model Profile {
 
   user   User @relation(fields: [userId], references: [id])
   userId Int  @unique
+
+  sentRequests     FriendsRequest[] @relation("from_profile")
+  receivedRequests FriendsRequest[] @relation("to_profile")
 }
 
 model VerificationCode {
@@ -46,7 +47,7 @@ model VerificationCode {
 
   @@index([email])
 }
-
+  
 model Album {
   id    Int    @id @default(autoincrement())
   title String
@@ -58,16 +59,44 @@ model Album {
 
   userId Int
   user   User    @relation(fields: [userId], references: [id])
-  images Image[]
+  // images PostImage[]
 }
 
-model Image {
-  id      Int    @id @default(autoincrement())
-  path    String
-  albumId Int
-  album   Album  @relation(fields: [albumId], references: [id])
-  // postId Int?
-  // post Post? @relation(fields: [postId], references: [id])
-  // meessage String?
-  // message Message? @relation(fields: [messageId], references: [id])
+model PostImage {
+  id               Int    @id @default(autoincrement())
+  original_image   String
+  compressed_image String
+
+  postId Int
+  post   Post @relation(fields: [postId], references: [id])
+}
+
+model FriendsRequest {
+  id Int @id @default(autoincrement())
+
+  fromProfileId Int
+  toProfileId   Int
+
+  from_profile Profile @relation("from_profile", fields: [fromProfileId], references: [id])
+  to_profile   Profile @relation("to_profile", fields: [toProfileId], references: [id])
+
+  created_at DateTime @default(now())
+}
+model Post {
+  id         Int      @id @default(autoincrement())
+  title      String
+  topic      String?
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+
+  // tags   post_app_post_tags[]
+  images PostImage[]//
+  // likes  PostLike[]
+  // hearts PostHeart[]
+  // views  PostView[]
+  // links  PostLink[]
 }
