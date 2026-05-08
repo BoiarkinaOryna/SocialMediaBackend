@@ -1,5 +1,8 @@
 import { BadRequestError } from "../../errors"
+<<<<<<< HEAD
 import { ForbiddenError } from "../../errors/app.errors"
+=======
+>>>>>>> 0ab5b5f1cd12eea2354b5ab12d3483da1ec2a21b
 import { PostService } from "./post.service"
 import { PostControllerContracts } from "./types/post.contracts"
 
@@ -70,7 +73,11 @@ export const PostController: PostControllerContracts = {
                 await PostService.delete(req.body.postId)
                 res.status(204).json()
             } else {
+<<<<<<< HEAD
                 throw new ForbiddenError("Can't delete another user's post")
+=======
+                res.status(403).json("Can't delete another user's post")
+>>>>>>> 0ab5b5f1cd12eea2354b5ab12d3483da1ec2a21b
             }
         } catch (error){
             next(error)

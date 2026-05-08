@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -52,13 +47,25 @@ model Profile {
   avatar     String?
   pseudonym  String?
 
-  sentRequests     FriendsRequest[] @relation("from_profile")
-  receivedRequests FriendsRequest[] @relation("to_profile")
+  friendsOne       profile_app_profile_friends[] @relation("profileOne")
+  friendsTwo       profile_app_profile_friends[] @relation("profileTwo")
+  sentRequests     FriendsRequest[]              @relation("from_profile")
+  receivedRequests FriendsRequest[]              @relation("to_profile")
 
   albums Album[]
 
   is_image_signature Boolean @default(false)
   is_text_signature  Boolean @default(false)
+}
+
+model profile_app_profile_friends {
+  id Int @id @default(autoincrement())
+
+  profileOneId Int
+  profileTwoId Int
+
+  profileOne Profile @relation("profileOne", fields: [profileOneId], references: [id])
+  profileTwo Profile @relation("profileTwo", fields: [profileTwoId], references: [id])
 }
 
 model FriendsRequest {
@@ -79,8 +86,8 @@ model Album {
   theme      String
   year       Int
   created_at DateTime @default(now())
-  is_shown   Boolean @default(true)
-  is_default Boolean @default(false)
+  is_shown   Boolean  @default(true)
+  is_default Boolean  @default(false)
 
   profileId Int
   profile   Profile @relation(fields: [profileId], references: [id])
@@ -92,7 +99,7 @@ model AlbumImage {
   id         Int      @id @default(autoincrement())
   image      String
   created_at DateTime @default(now())
-  is_shown   Boolean @default(true)
+  is_shown   Boolean  @default(true)
 
   albumId Int
   album   Album @relation(fields: [albumId], references: [id])

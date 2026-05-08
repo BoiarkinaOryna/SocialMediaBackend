@@ -2,7 +2,8 @@
 CREATE TABLE "User" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "username" TEXT,
-    "email" TEXT NOT NULL
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL
 );
 
 -- CreateTable
@@ -19,13 +20,12 @@ CREATE TABLE "EmailVerification" (
 CREATE TABLE "Profile" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "userId" INTEGER NOT NULL,
-    "password" TEXT NOT NULL,
-    "birth_date" TEXT NOT NULL,
+    "birth_date" TEXT,
     "signature" TEXT,
     "avatar" TEXT,
     "pseudonym" TEXT,
-    "is_image_signature" BOOLEAN NOT NULL,
-    "is_text_signature" BOOLEAN NOT NULL,
+    "is_image_signature" BOOLEAN NOT NULL DEFAULT false,
+    "is_text_signature" BOOLEAN NOT NULL DEFAULT false,
     CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -46,8 +46,8 @@ CREATE TABLE "Album" (
     "theme" TEXT NOT NULL,
     "year" INTEGER NOT NULL,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "is_shown" BOOLEAN NOT NULL,
-    "is_default" BOOLEAN NOT NULL,
+    "is_shown" BOOLEAN NOT NULL DEFAULT true,
+    "is_default" BOOLEAN NOT NULL DEFAULT false,
     "profileId" INTEGER NOT NULL,
     CONSTRAINT "Album_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -57,7 +57,7 @@ CREATE TABLE "AlbumImage" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "image" TEXT NOT NULL,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "is_shown" BOOLEAN NOT NULL,
+    "is_shown" BOOLEAN NOT NULL DEFAULT true,
     "albumId" INTEGER NOT NULL,
     CONSTRAINT "AlbumImage_albumId_fkey" FOREIGN KEY ("albumId") REFERENCES "Album" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -180,17 +180,11 @@ CREATE TABLE "post_app_post_tags" (
     CONSTRAINT "post_app_post_tags_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "Tag" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- CreateTable
-CREATE TABLE "profile_app_profile_friends" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "profileAId" INTEGER NOT NULL,
-    "profileBId" INTEGER NOT NULL,
-    CONSTRAINT "profile_app_profile_friends_profileAId_fkey" FOREIGN KEY ("profileAId") REFERENCES "Profile" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "profile_app_profile_friends_profileBId_fkey" FOREIGN KEY ("profileBId") REFERENCES "Profile" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EmailVerification_userId_key" ON "EmailVerification"("userId");
