@@ -35,6 +35,15 @@ export const AlbumRepository: AlbumRepositoryContract = {
       throw handlePrismaError(error, "Album");
     }
   },
+  async getInfo(id) {
+    try {
+      return await PRISMA_CLIENT.album.findUnique({
+        where: { id },
+      })
+    } catch (error) {
+      throw handlePrismaError(error, "Album");
+    }
+  },
 
   async getById(id: number) {
     try {
@@ -95,7 +104,7 @@ export const AlbumRepository: AlbumRepositoryContract = {
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
           case PrismaErrorCodes.NOT_EXIST:
-            return null
+            return
           default:
             throw new InternalServerError();
         }

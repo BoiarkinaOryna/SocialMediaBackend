@@ -11,10 +11,10 @@ export const AlbumController: AlbumControllerContracts = {
     next: NextFunction,
   ) => {
     try {
-      const album = await AlbumService.create({
-        ...req.body,
-        userId: res.locals.userId,
-      });
+      const album = await AlbumService.create(
+        req.body,
+        res.locals.userId,
+      );
 
       res.status(201).json(album);
     } catch (error) {
@@ -28,10 +28,10 @@ export const AlbumController: AlbumControllerContracts = {
     next: NextFunction,
   ) => {
     try {
-      const album = await AlbumService.update({
-        id: Number(req.params.id),
-        ...req.body,
-      });
+      const album = await AlbumService.update(
+        req.body,
+        Number(req.params.id),
+      );
 
       res.status(200).json(album);
     } catch (error) {
@@ -45,9 +45,9 @@ export const AlbumController: AlbumControllerContracts = {
     next: NextFunction,
   ) => {
     try {
-      const album = await AlbumService.getInfo({
-        id: Number(req.params.id),
-      });
+      const album = await AlbumService.getInfo(
+        Number(req.params.id),
+      );
 
       res.status(200).json(album);
     } catch (error) {

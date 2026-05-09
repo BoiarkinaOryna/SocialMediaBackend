@@ -8,6 +8,13 @@ export type AlbumInfo = {
   year: number;
 };
 
+export type AlbumInfoWithId = {
+  id: number;
+  name: string;
+  theme: string;
+  year: number;
+}
+
 export type UpdateAlbum = Partial<AlbumInfo>;
 
 export type addImageDTO = {

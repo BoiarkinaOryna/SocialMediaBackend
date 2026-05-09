@@ -6,7 +6,6 @@ import { PostRepositoryContracts } from "./types/post.contracts";
 export const PostRepository: PostRepositoryContracts = {
     create: async function (id, data) {
         try {
-<<<<<<< HEAD
             const post = await PRISMA_CLIENT.post.create({
                 data: {
                     author: {
@@ -26,16 +25,6 @@ export const PostRepository: PostRepositoryContracts = {
                 })
 
             }
-=======
-            await PRISMA_CLIENT.post.create({
-                data: {
-                     author: {
-                        connect: { id }
-                    },
-                    ...data
-                }
-            })
->>>>>>> 0ab5b5f1cd12eea2354b5ab12d3483da1ec2a21b
         } catch (error){
             if (error instanceof Error) {
                 throw new InternalServerError(error.message);
@@ -60,11 +49,7 @@ export const PostRepository: PostRepositoryContracts = {
     getMy: async function (id, take, page) {
         try{
             const posts = await PRISMA_CLIENT.post.findMany({
-<<<<<<< HEAD
-                where: {authorId: id},
-=======
                 where: { authorId: id },
->>>>>>> 0ab5b5f1cd12eea2354b5ab12d3483da1ec2a21b
                 skip: (take - take * page),
                 take
             })
