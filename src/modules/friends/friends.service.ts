@@ -34,8 +34,18 @@ export const FriendsService: FriendsServiceContract = {
     // if (request.toProfileId !== currentProfileId) {
     //   throw new BadRequestError("This request does not belong to current user");
     // }
-    await FriendsRepository.deleteRequestByIds(userId, senderId);
-    await FriendsRepository.acceptRequest(userId, senderId);
+    await FriendsRepository.deleteRequestByIds(currentProfileId, senderId);
+    await FriendsRepository.acceptRequest(currentProfileId, senderId);
+  },
+
+  rejectRequest: async (userId, senderId) => {
+    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
+
+    if (!currentProfileId) {
+      throw new NotFoundError("Profile");
+    }
+
+    return await FriendsRepository.deleteRequestByIds(currentProfileId, senderId);
   },
 
   getRequests: async (userId) => {

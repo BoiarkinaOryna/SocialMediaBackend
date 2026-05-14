@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 
 
-// I need to add smth because commit didn't push
 export type Album = Prisma.AlbumGetPayload<{}>;
 
 export type AlbumInfo = {
