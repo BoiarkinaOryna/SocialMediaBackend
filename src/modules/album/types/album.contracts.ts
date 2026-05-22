@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { addImageDTO, Album, AlbumInfo, UpdateAlbum } from "./album.types";
+import { addImageDTO, Album, AlbumInfo, AlbumInfoWithId, UpdateAlbum } from "./album.types";
 
 export interface AlbumControllerContracts {
   create: (
@@ -43,8 +43,8 @@ export interface AlbumControllerContracts {
 export interface AlbumServiceContract {
   create: (data: AlbumInfo, userId: number) => Promise<any>;
   update: (data: UpdateAlbum, id: number) => Promise<any>;
-  getInfo: (id: number) => Promise<AlbumInfo>;
-  getAlbums: (userId: number) => Promise<Album[]>;
+  getInfo: (id: number) => Promise<AlbumInfoWithId>;
+  getAlbums: (userId: number) => Promise<Album[] | null>;
   addImage: (data: addImageDTO) => Promise<any>;
   deleteAlbum: (id: number, userId: number) => Promise<any>;
   // deleteAlbum: (id: number) => Promise<Album[]>;
@@ -54,7 +54,7 @@ export interface AlbumRepositoryContract {
   create: (createAlbum: AlbumInfo, profileId: number) => Promise<any>;
   getById: (id: number) => Promise<Album | null>
   update: (data: UpdateAlbum, id: number) => Promise<any>;
-  getInfo: (id: number) => Promise<AlbumInfo>;
+  getInfo: (id: number) => Promise<AlbumInfoWithId | null>;
   getAlbums: (userId: number) => Promise<Album[] | null>;
   addImage: (data: addImageDTO) => Promise<any>;
   deleteAlbum: (id: number) => Promise<any>;

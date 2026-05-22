@@ -16,12 +16,6 @@ FriendsRouter.post(
   FriendsController.acceptRequest,
 );
 
-FriendsRouter.delete(
-  "/request/:id",
-  authenticateMiddleware,
-  FriendsController.rejectRequest,
-);
-
 FriendsRouter.get(
   "/requests",
   authenticateMiddleware,
@@ -37,7 +31,7 @@ FriendsRouter.get(
 );
 
 FriendsRouter.delete(
-  "/friend/:id",
+  "/:id",
   authenticateMiddleware,
   FriendsController.removeFriend,
 );

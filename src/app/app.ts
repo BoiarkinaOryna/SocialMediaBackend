@@ -10,8 +10,10 @@ const app: Express = express();
 
 app.use(express.json({ limit: "10mb" }));
 
-app.use(cors({ origin: "" }));
+app.use(cors());
 app.use(logMiddleware);
+app.use("/uploads", express.static("uploads"));
+
 app.use(router);
 app.use(errorMiddleware);
 console.log(uploadDir);

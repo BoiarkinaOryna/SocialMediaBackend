@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+
 export type Album = Prisma.AlbumGetPayload<{}>;
 
 export type AlbumInfo = {
@@ -7,6 +8,13 @@ export type AlbumInfo = {
   theme: string;
   year: number;
 };
+
+export type AlbumInfoWithId = {
+  id: number;
+  name: string;
+  theme: string;
+  year: number;
+}
 
 export type UpdateAlbum = Partial<AlbumInfo>;
 

@@ -29,6 +29,7 @@ export const AlbumService: AlbumServiceContract = {
     }
 
     return {
+      id: album.id,
       name: album.name,
       theme: album.theme,
       year: album.year,
@@ -46,6 +47,7 @@ export const AlbumService: AlbumServiceContract = {
     const profileId = await UserRepository.findProfileIdByUserId(userId)
     const album = await AlbumRepository.getById(id);
   
+    if (!album) throw new NotFoundError("Album")
     if (album.profileId !== profileId) {
       throw new ForbiddenError("Can't delete another user's album")
     }

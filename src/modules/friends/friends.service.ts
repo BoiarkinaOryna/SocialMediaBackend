@@ -34,19 +34,8 @@ export const FriendsService: FriendsServiceContract = {
     // if (request.toProfileId !== currentProfileId) {
     //   throw new BadRequestError("This request does not belong to current user");
     // }
-    // Codex: здесь нужно использовать profileId, иначе дружба создается некорректно.
-    await FriendsRepository.deleteRequestByIds(currentProfileId, senderId);
-    await FriendsRepository.acceptRequest(currentProfileId, senderId);
-  },
-
-  rejectRequest: async (userId, senderId) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
-
-    if (!currentProfileId) {
-      throw new NotFoundError("Profile");
-    }
-
-    return await FriendsRepository.deleteRequestByIds(currentProfileId, senderId);
+    await FriendsRepository.deleteRequestByIds(userId, senderId);
+    await FriendsRepository.acceptRequest(userId, senderId);
   },
 
   getRequests: async (userId) => {

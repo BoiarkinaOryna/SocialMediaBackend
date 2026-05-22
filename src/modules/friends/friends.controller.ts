@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { FriendsControllerContracts } from "./types/friends.contracts";
 import { FriendsService } from "./friends.service";
+import { SendRequestDTO } from "./types/friends.types";
 
 export const FriendsController: FriendsControllerContracts = {
   sendRequest: async (req, res, next) => {
@@ -36,22 +37,6 @@ export const FriendsController: FriendsControllerContracts = {
       );
 
       res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  rejectRequest: async (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      await FriendsService.rejectRequest(
-        res.locals.userId,
-        Number(req.params.id),
-      );
-      res.status(204).send();
     } catch (error) {
       next(error);
     }
@@ -99,12 +84,12 @@ export const FriendsController: FriendsControllerContracts = {
     next: NextFunction,
   ) => {
     try {
-      await FriendsService.removeFriend(
+      const result = await FriendsService.removeFriend(
         res.locals.userId,
         Number(req.params.id),
       );
 
-      res.status(204).send();
+      res.status(200).json(result);
     } catch (error) {
       next(error);
     }
