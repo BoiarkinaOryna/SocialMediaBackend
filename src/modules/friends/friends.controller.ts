@@ -5,11 +5,11 @@ import { FriendsService } from "./friends.service";
 export const FriendsController: FriendsControllerContracts = {
   sendRequest: async (req, res, next) => {
     try {
+      console.log("from user", res.locals.userId, "to user", req.body.toProfileId,)
       const result = await FriendsService.sendRequest(
         res.locals.userId,
         req.body.toProfileId,
       );
-
       res.status(201).json(result);
     } catch (error: any) {
       if (error.message === "Friend request already exists") {

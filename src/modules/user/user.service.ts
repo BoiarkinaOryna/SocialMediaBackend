@@ -43,6 +43,7 @@ export const UserService: ServiceContract = {
         expiresIn: "7d",
       },
     );
+    console.log("user.id", user.id, token)
     return { token };
   },
   register: async (credentials) => {
@@ -98,7 +99,9 @@ export const UserService: ServiceContract = {
     return user;
   },
   createProfile: async (dto) => {
-    return await UserRepository.createProfile(dto);
+    const profile = await UserRepository.createProfile(dto);
+    await UserRepository.createAvatarAlbum(profile.id)
+    return profile;
   },
 
   updateMe: async (dto) => {

@@ -38,7 +38,7 @@ export interface FriendsControllerContracts {
 }
 
 export interface FriendsServiceContract {
-  sendRequest: (userId: number, toProfileId: number) => Promise<any>;
+  sendRequest: (userId: number, toUsereId: number) => Promise<any>;
 
   acceptRequest: (userId: number, senderId: number) => Promise<any>;
 

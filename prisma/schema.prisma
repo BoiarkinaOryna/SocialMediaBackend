@@ -13,8 +13,8 @@ model User {
   password String
 
   emailVerifications EmailVerification[]
-  profiles           Profile[]
 
+  profile      Profile?
   chats        chat_app_chat_users[]
   readMessages chat_app_message_readers[]
 
@@ -38,15 +38,15 @@ model EmailVerification {
 }
 
 model Profile {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  id Int @id @default(autoincrement())
 
   birth_date String?
   signature  String?
   avatar     String?
   pseudonym  String?
 
+  userId           Int                           @unique
+  user             User                          @relation(fields: [userId], references: [id])
   friendsOne       profile_app_profile_friends[] @relation("profileOne")
   friendsTwo       profile_app_profile_friends[] @relation("profileTwo")
   sentRequests     FriendsRequest[]              @relation("from_profile")

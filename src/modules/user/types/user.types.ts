@@ -54,3 +54,30 @@ export interface VerifyCodeDTO {
   email: string;
   code: string;
 }
+
+export type userWithProfile = {
+  id: number,
+  username: string | null,
+  pseudonym?: string | null,
+  birth_date?: string | null,
+  email: string,
+  signature?: string | null,
+  avatar?: string | null,
+
+  // id: number;
+  // username: string | null;
+  // email: string;
+  // profile: {
+  //     id: number;
+  //     userId: number;
+  //     pseudonym: string | null;
+  //     birth_date: string | null;
+  //     signature: string | null;
+  //     avatar: string | null;
+  //     is_image_signature: boolean;
+  //     is_text_signature: boolean;
+  // } | null;
+}
+export type GetOnlineUsersAcknowlegment = (response: {
+	userIds: number[]
+}) => void;

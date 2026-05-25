@@ -35,9 +35,16 @@ export const PostRepository: PostRepositoryContracts = {
     getAll: async function (take, page){
         try{
             const posts = await PRISMA_CLIENT.post.findMany({
-                skip: (take - take * page),
-                take
-            })
+               skip: take * (page - 1),
+                    take,
+                    include: {
+                        author: {
+                            include: {
+                                profile: true
+                            }
+                        }
+                    }
+                })  
             return posts
         } catch (error){
             if (error instanceof Error) {
@@ -51,7 +58,14 @@ export const PostRepository: PostRepositoryContracts = {
             const posts = await PRISMA_CLIENT.post.findMany({
                 where: { authorId: id },
                 skip: (take - take * page),
-                take
+                take,
+                include: {
+                        author: {
+                            include: {
+                                profile: true
+                            }
+                        }
+                    }
             })
             console.log("my posts", posts)
             return posts

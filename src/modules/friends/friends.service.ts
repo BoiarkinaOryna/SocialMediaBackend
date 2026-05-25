@@ -4,13 +4,13 @@ import { FriendsRepository } from "./friends.repository";
 import { FriendsServiceContract } from "./types/friends.contracts";
 
 export const FriendsService: FriendsServiceContract = {
-  sendRequest: async (userId: number, toProfileId: number) => {
+  sendRequest: async (userId: number, toUserId: number) => {
     const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
-
-    if (!currentProfileId) {
+    const toProfileId = await UserRepository.findProfileIdByUserId(toUserId);
+    if (!currentProfileId || !toProfileId) {
       throw new NotFoundError("Profile");
     }
-
+    console.log("currentProfileId", currentProfileId, "toProfileId", toProfileId)
     if (currentProfileId === toProfileId) {
       throw new BadRequestError("You cannot send request to yourself");
     }
