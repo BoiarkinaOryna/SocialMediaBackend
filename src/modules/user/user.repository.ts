@@ -88,15 +88,39 @@ export const UserRepository: RepoContract = {
       throw new InternalServerError();
     }
   },
-  findById: function (id: number): Promise<User | null> {
+  async findById(id: number) {
     try {
-      const user = PRISMA_CLIENT.user.findUnique({
+      const user = await PRISMA_CLIENT.user.findUnique({
         where: { id },
         omit: {
           password: true,
         },
+        include:{
+          profiles: {
+            select: {
+              pseudonym: true,
+              birth_date: true,
+              signature: true,
+              avatar: true
+            },
+            take: 1,
+          }
+        }
       });
-      return user;
+      if (!user) {
+        throw new NotFoundError("User");
+      }
+      const profile = user.profiles[0];
+      return {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        pseudonym: profile?.pseudonym,
+        birth_date: profile?.birth_date,
+        signature: profile?.signature,
+        avatar: profile?.avatar
+
+      };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
@@ -189,6 +213,24 @@ export const UserRepository: RepoContract = {
         throw new NotFoundError("Profile")
       }
     } catch (error){
+      if (error instanceof Error) {
+        throw new InternalServerError(error.message);
+      }
+      throw new InternalServerError();
+    }
+  },
+  async createAvatarAlbum(profileId) {
+    try {
+      await PRISMA_CLIENT.album.create({
+        data:{
+          profileId,
+          name: "Аватарки",
+          theme: "Мої фото",
+          year: 0,
+          
+        }
+      })
+    }catch(error){
       if (error instanceof Error) {
         throw new InternalServerError(error.message);
       }

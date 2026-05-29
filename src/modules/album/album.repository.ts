@@ -56,12 +56,13 @@ export const AlbumRepository: AlbumRepositoryContract = {
   },
   getAlbums: async (profileId: number) => {
     try{ 
-      const albums = PRISMA_CLIENT.album.findMany({
+      const albums = await PRISMA_CLIENT.album.findMany({
         where: { profileId },
         include: {
           images: true,
         },
       });
+      console.log("albums", albums)
       return albums
     } catch (error){
       if (error instanceof PrismaClientKnownRequestError) {
@@ -81,7 +82,7 @@ export const AlbumRepository: AlbumRepositoryContract = {
   
   addImage: async (data: addImageDTO) => {
     try{ 
-      PRISMA_CLIENT.albumImage.create({
+      await PRISMA_CLIENT.albumImage.create({
         data: {
           image: data.image,
           albumId: data.albumId,

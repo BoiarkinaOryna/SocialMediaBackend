@@ -14,6 +14,12 @@ export interface FriendsControllerContracts {
     next: NextFunction,
   ) => void;
 
+  rejectRequest: (
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+  ) => void;
+
   getRequests: (req: Request, res: Response, next: NextFunction) => void;
 
   getFriends: (req: Request, res: Response, next: NextFunction) => void;
@@ -32,9 +38,11 @@ export interface FriendsControllerContracts {
 }
 
 export interface FriendsServiceContract {
-  sendRequest: (userId: number, toProfileId: number) => Promise<any>;
+  sendRequest: (userId: number, toUsereId: number) => Promise<any>;
 
   acceptRequest: (userId: number, senderId: number) => Promise<any>;
+
+  rejectRequest: (userId: number, senderId: number) => Promise<any>;
 
   getRequests: (userId: number) => Promise<any>;
 

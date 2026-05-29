@@ -38,10 +38,10 @@ export const UserController: UserControllerContract = {
   },
   me: async function (_, res, next) {
     try {
-      const token = await UserService.me({ userId: res.locals.userId });
-      res.status(200).json(token);
+      const user = await UserService.me({ userId: res.locals.userId });
+      res.status(200).json(user);
     } catch (error) {
-      next(error);
+      next(error); 
     }
   },
   createProfile: async (req: Request, res: Response, next: NextFunction) => {
