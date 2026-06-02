@@ -6,13 +6,46 @@ export interface JoinChatPayload {
 export interface LeaveChatPayload {
 	chatId: number;
 }
-export type CreateChatDto = {
-	contactUserId: number;
-	ownerId: number;
-};
+export interface SendMessagePayload {
+	chatId: number;
+	text?: string;
+	images?: string[];
+}
 
-export type ChatWithChatParticipants = Prisma.ChatGetPayload<{
+type ChatWithChatParticipants = Prisma.chat_app_chatGetPayload<{
 	include: {
-		users: true
+		user_app_user: true,
+		chat_app_chat_users: true
 	};
 }>;
+
+export type ChatWithChatParticipantsDto =
+	Omit<
+		ChatWithChatParticipants,
+		"id" | "chat_id" | "user_id" | "user_app_user" | "chat_app_chat_users"
+	> & {
+		id: number;
+
+		// user_app_user: Omit<
+		// 	ChatWithChatParticipants["user_app_user"],
+		// 	"id"
+		// > & {
+		// 	id: number;
+		// };
+		user_app_user:
+			| (Omit<
+					ChatWithChatParticipants["user_app_user"],
+					"id"
+			  > & {
+					id: number;
+			  })
+			| null;
+
+		chat_app_chat_users: {
+			id: number;
+			chat_id: number;
+			user_id: number;
+		}[];
+	};
+
+export type MessageWithRelations = Prisma.chat_app_messageGetPayload<{}>;

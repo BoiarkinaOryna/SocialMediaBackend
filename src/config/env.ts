@@ -9,5 +9,9 @@ export const env = cleanEnv(process.env, {
 	HOST: str({ default: "localhost" }),
 	PORT: num(),
 	EMAIL: str(),
-	EMAIL_PASSWORD: str()
+	EMAIL_PASSWORD: str(),
+	USER_USERNAME: str(),
+	PASSWORD: str(),
+	DB_ADDRESS: str(),
+	DB_PORT: num()
 });

@@ -36,8 +36,8 @@ FriendsRouter.get(
   FriendsController.getRecommendations,
 );
 
-FriendsRouter.delete(
-  "/friend/:id",
-  authenticateMiddleware,
-  FriendsController.removeFriend,
-);
+// FriendsRouter.delete(
+//   "/friend/:id",
+//   authenticateMiddleware,
+//   FriendsController.removeFriend,
+// );

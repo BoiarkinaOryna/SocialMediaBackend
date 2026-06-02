@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client"
 
-export type Post = Prisma.PostGetPayload<{}>
+export type Post = Prisma.post_app_postGetPayload<{}>
 
 export type PostCredentials = {
     title: string,

@@ -2,18 +2,28 @@
 import { type InferType } from "yup";
 import { loginSchema, regSchema } from "../user.schema";
 import { Prisma } from "@prisma/client";
-export type User = Prisma.UserGetPayload<{
+type UserWithBigInt = Prisma.user_app_userGetPayload<{
   omit: {
     password: true;
   };
 }>;
+
+export type User = UserWithBigInt
+
+// export type User = 
+//   Omit<
+//     UserWithBigInt,
+//     "id"
+//   > & {
+//     id: number
+//   }
 
 export type CreateUserPayload = {
   email: string;
   password: string;
 };
 
-export type UserWithPassword = Prisma.UserGetPayload<{}>;
+export type UserWithPassword = Prisma.user_app_userGetPayload<{}>;
 
 export type RegisterDto = {
   email: string;

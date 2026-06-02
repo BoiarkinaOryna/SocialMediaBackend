@@ -30,11 +30,11 @@ export interface FriendsControllerContracts {
     next: NextFunction,
   ) => void;
 
-  removeFriend: (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) => void;
+  // removeFriend: (
+  //   req: Request<{ id: string }>,
+  //   res: Response,
+  //   next: NextFunction,
+  // ) => void;
 }
 
 export interface FriendsServiceContract {
@@ -50,7 +50,7 @@ export interface FriendsServiceContract {
 
   getRecommendations: (userId: number) => Promise<any>;
 
-  removeFriend: (userId: number, friendProfileId: number) => Promise<any>;
+  // removeFriend: (userId: number, friendProfileId: number) => Promise<any>;
 }
 
 export interface FriendsRepositoryContract {
@@ -68,5 +68,5 @@ export interface FriendsRepositoryContract {
 
   getRecommendations: (profileId: number) => Promise<any>;
 
-  removeFriend: (profileId: number, friendProfileId: number) => Promise<any>;
+  // removeFriend: (profileId: number, friendProfileId: number) => Promise<any>;
 }

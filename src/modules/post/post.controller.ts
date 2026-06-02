@@ -32,6 +32,7 @@ export const PostController: PostControllerContracts = {
                 take && +take,
                 page && +page
             )
+            console.log("posts", posts)
             res.json(posts)
         } catch (error) {
             next(error)

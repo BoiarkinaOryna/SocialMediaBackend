@@ -5,25 +5,19 @@ import { FriendsServiceContract } from "./types/friends.contracts";
 
 export const FriendsService: FriendsServiceContract = {
   sendRequest: async (userId: number, toUserId: number) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
-    const toProfileId = await UserRepository.findProfileIdByUserId(toUserId);
-    if (!currentProfileId || !toProfileId) {
-      throw new NotFoundError("Profile");
-    }
-    console.log("currentProfileId", currentProfileId, "toProfileId", toProfileId)
-    if (currentProfileId === toProfileId) {
+    if (userId === toUserId) {
       throw new BadRequestError("You cannot send request to yourself");
     }
 
-    return await FriendsRepository.sendRequest(currentProfileId, toProfileId);
+    return await FriendsRepository.sendRequest(userId, toUserId);
   },
 
   acceptRequest: async (userId, senderId) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
+    // const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
 
-    if (!currentProfileId) {
-      throw new NotFoundError("Profile");
-    }
+    // if (!currentProfileId) {
+    //   throw new NotFoundError("Profile");
+    // }
 
     // const request = await FriendsRepository.getRequestById(requestId);
 
@@ -34,60 +28,53 @@ export const FriendsService: FriendsServiceContract = {
     // if (request.toProfileId !== currentProfileId) {
     //   throw new BadRequestError("This request does not belong to current user");
     // }
-    await FriendsRepository.deleteRequestByIds(currentProfileId, senderId);
-    await FriendsRepository.acceptRequest(currentProfileId, senderId);
+    return await FriendsRepository.acceptRequest(userId, senderId);
   },
 
   rejectRequest: async (userId, senderId) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
-
-    if (!currentProfileId) {
-      throw new NotFoundError("Profile");
-    }
-
-    return await FriendsRepository.deleteRequestByIds(currentProfileId, senderId);
+    return await FriendsRepository.deleteRequestByIds(userId, senderId);
   },
 
   getRequests: async (userId) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
+    // const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
 
-    if (!currentProfileId) {
-      throw new NotFoundError("Profile");
-    }
+    // if (!currentProfileId) {
+      // throw new NotFoundError("Profile");
+    // }
 
-    return await FriendsRepository.getRequests(currentProfileId);
+    return await FriendsRepository.getRequests(userId);
   },
 
   getFriends: async (userId) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
+    // const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
 
-    if (!currentProfileId) {
-      throw new NotFoundError("Profile");
-    }
+    // if (!currentProfileId) {
+    //   throw new NotFoundError("Profile");
+    // }
 
-    return await FriendsRepository.getFriends(currentProfileId);
+    return await FriendsRepository.getFriends(userId);
   },
 
   getRecommendations: async (userId) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
+    // const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
 
-    if (!currentProfileId) {
-      throw new NotFoundError("Profile");
-    }
+    // if (!currentProfileId) {
+    //   throw new NotFoundError("Profile");
+    // }
 
-    return await FriendsRepository.getRecommendations(currentProfileId);
+    return await FriendsRepository.getRecommendations(userId);
   },
 
-  removeFriend: async (userId, friendProfileId) => {
-    const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
+  // removeFriend: async (userId, friendProfileId) => {
+    // const currentProfileId = await UserRepository.findProfileIdByUserId(userId);
 
-    if (!currentProfileId) {
-      throw new NotFoundError("Profile");
-    }
+    // if (!currentProfileId) {
+    //   throw new NotFoundError("Profile");
+    // }
 
-    return await FriendsRepository.removeFriend(
-      currentProfileId,
-      friendProfileId,
-    );
-  },
+    // return await FriendsRepository.removeFriend(
+    //   userId,
+    //   friendProfileId,
+    // );
+  // },
 };

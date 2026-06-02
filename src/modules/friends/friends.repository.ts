@@ -1,5 +1,4 @@
 import { PRISMA_CLIENT } from "../../config/client";
-import { NotFoundError } from "../../errors";
 import type { FriendsRepositoryContract } from "./types/friends.contracts";
 
 const shuffleArray = <T>(items: T[]): T[] => {
@@ -15,41 +14,46 @@ const shuffleArray = <T>(items: T[]): T[] => {
 
 export const FriendsRepository: FriendsRepositoryContract = {
   async getProfileById(profileId) {
-    return await PRISMA_CLIENT.profile.findUnique({
+    return await PRISMA_CLIENT.profile_app_profile.findUnique({
       where: {
         id: profileId,
       },
     });
   },
 
-  async sendRequest(fromProfileId, toProfileId) {
+  async sendRequest(from_user_id, to_user_id) {
     try {
-      const targetProfile = await this.getProfileById(toProfileId);
-
-      if (!targetProfile) {
-        throw new NotFoundError("Profile");
-      }
-
-      return await PRISMA_CLIENT.friendsRequest.create({
+      const request = await PRISMA_CLIENT.user_app_friendship.create({
         data: {
-          fromProfileId,
-          toProfileId,
+          from_user_id,
+          to_user_id,
+          status: "pending",
+          created_at: new Date()
         },
       });
+      console.log("request sended", request)
     } catch (error: any) {
       if (error.code === "P2002") {
         throw new Error("Friend request already exists");
       }
-
       throw error;
     }
   },
 
   async deleteRequestByIds(userId, senderId) {
-    return await PRISMA_CLIENT.friendsRequest.deleteMany({
+    console.log("in delete friend", userId, senderId)
+    return await PRISMA_CLIENT.user_app_friendship.deleteMany({
       where: {
-        fromProfileId: senderId,
-        toProfileId: userId
+        OR: [
+          {
+            from_user_id: senderId,
+            to_user_id: userId
+          },
+          {
+            from_user_id: userId,
+            to_user_id: senderId
+          }
+        ]
       },
     });
   },
@@ -58,159 +62,191 @@ export const FriendsRepository: FriendsRepositoryContract = {
 
   async acceptRequest(userId, senderId) {
     // const request = await this.getRequestById(requestId);
-    await PRISMA_CLIENT.profile_app_profile_friends.create({
-        data:{
-          profileOneId: userId,
-          profileTwoId: senderId
-
-        }
+    await PRISMA_CLIENT.user_app_friendship.updateMany({
+      where:{
+        from_user_id: senderId,
+        to_user_id: userId,
+      },
+      data:{
+        status: "accepted"
+      }
     })
   },
 
-  async getRequests(profileId) {
-    const requests = await PRISMA_CLIENT.friendsRequest.findMany({
+  async getRequests(to_user_id) {
+    const requests = await PRISMA_CLIENT.user_app_friendship.findMany({
       where: {
-        toProfileId: profileId,
-      },
-      include: {
-        from_profile: true,
-      },
+        to_user_id: to_user_id,
+      }
     });
-
+    console.log("requests", requests)
     return await Promise.all(
       requests.map(async (request) => {
-        const user = await PRISMA_CLIENT.user.findUnique({
+        const user = await PRISMA_CLIENT.user_app_user.findUnique({
           where: {
-            id: request.from_profile.userId,
+            id: request.from_user_id,
           },
           select: {
             username: true,
+            profile_app_profile: {
+              select: {
+                pseudonym: true
+              }
+            }
           },
         });
+        console.log("reqest user", user)
 
         return {
           ...request,
+          id: Number(request.id),
+          from_user_id: Number(request.from_user_id),
+          to_user_id: Number(request.to_user_id),
           username: user?.username ?? null,
+          pseudonym: user?.profile_app_profile?.pseudonym
         };
       }),
     );
   },
 
-  async getFriends(profileId: number) {
-    const friendships = await PRISMA_CLIENT.profile_app_profile_friends.findMany({
+  async getFriends(userId: number) {
+    const friendships = await PRISMA_CLIENT.user_app_friendship.findMany({
       where: {
         OR: [
-          { profileOneId: profileId },
-          { profileTwoId: profileId },
+          { from_user_id: userId },
+          { to_user_id: userId },
         ],
       },
-      include: {
-        profileOne: true,
-        profileTwo: true,
-      },
+      // include: {
+      //   user_app_user_user_app_friendship_from_user_idTouser_app_user: true,
+      //   user_app_user_user_app_friendship_to_user_idTouser_app_user: true,
+      // },
     });
 
     const friends = await Promise.all(
       friendships.map(async (friendship) => {
-        const friend =
-          friendship.profileOneId === profileId
-            ? friendship.profileTwo
-            : friendship.profileOne;
+        const friendId =
+          Number(friendship.from_user_id) === userId
+            ? Number(friendship.to_user_id)
+            : Number(friendship.from_user_id);
 
-        const user = await PRISMA_CLIENT.user.findUnique({
+        const user = await PRISMA_CLIENT.user_app_user.findUnique({
           where: {
-            id: friend.userId,
+            id: friendId,
           },
           select: {
+            id: true,
             username: true,
+            profile_app_profile: {
+              select: {
+                pseudonym: true,
+              },
+            },
           },
         });
 
-        return {
-          ...friend,
+        // const profile = await PRISMA_CLIENT.profile_app_profile.findFirst({
+        //   where: {
+        //     user_id: friendId
+        //   }
+        // })
+        const friend = {
+          id: Number(user?.id),
+          from_user_id: Number(friendship.from_user_id),
           username: user?.username,
+          pseudonym :user?.profile_app_profile?.pseudonym,
         };
+        return friend
       })
     );
-
+    
+    console.log("friends", friends)
     return friends;
   },
 
-  async getRecommendations(profileId) {
-    const [friendships, requests] = await Promise.all([
-      PRISMA_CLIENT.profile_app_profile_friends.findMany({
+  async getRecommendations(userId) {
+    const [friendships] = await Promise.all([
+      PRISMA_CLIENT.user_app_friendship.findMany({
         where: {
-          OR: [{ profileOneId: profileId }, { profileTwoId: profileId }],
-        },
-      }),
-      PRISMA_CLIENT.friendsRequest.findMany({
-        where: {
-          OR: [{ fromProfileId: profileId }, { toProfileId: profileId }],
+          OR: [{ from_user_id: userId }, { to_user_id: userId }],
         },
       }),
     ]);
 
-    const excludedProfileIds = new Set<number>([profileId]);
+    const excludedUserIds = new Set<number>([userId]);
 
     friendships.forEach((friendship) => {
       const friendId =
-        friendship.profileOneId === profileId
-          ? friendship.profileTwoId
-          : friendship.profileOneId;
+        Number(friendship.from_user_id) === userId
+          ? friendship.from_user_id
+          : friendship.to_user_id;
 
-      excludedProfileIds.add(friendId);
+      excludedUserIds.add(Number(friendId));
     });
 
-    requests.forEach((request) => {
-      const requestedProfileId =
-        request.fromProfileId === profileId
-          ? request.toProfileId
-          : request.fromProfileId;
+    // const profiles = await PRISMA_CLIENT.profile.findMany({
+    //   where: {
+    //     id: {
+    //       notIn: [...excludedUserIds],
+    //     },
+    //   },
+    //   include: {
+    //     user: {
+    //       select: {
+    //         username: true,
+    //       },
+    //     },
+    //   },
+    // });
 
-      excludedProfileIds.add(requestedProfileId);
-    });
-
-    const profiles = await PRISMA_CLIENT.profile.findMany({
+    const users = await PRISMA_CLIENT.user_app_user.findMany({
       where: {
         id: {
-          notIn: [...excludedProfileIds],
+          notIn: [...excludedUserIds],
         },
       },
       include: {
-        user: {
+        profile_app_profile: {
           select: {
-            username: true,
+            avatar: true,
           },
         },
       },
-    });
+    })
+    const usersWithNumberId =users.map(user => ({
+      ...user,
+      id: Number(user.id),
+    }))
+    // console.log("usersWithNumberId", usersWithNumberId)
 
-    return shuffleArray(profiles).map(({ user, ...profile }) => ({
-      ...profile,
-      username: user.username ?? null,
-    }));
+    return usersWithNumberId
+
+    // return shuffleArray(users).map(({ user, ...profile }) => ({
+    //   ...profile,
+    //   username: user.username ?? null,
+    // }));
   },
 
-  async removeFriend(profileId, friendProfileId) {
-    const deletedFriendships = await PRISMA_CLIENT.profile_app_profile_friends.deleteMany({
-      where: {
-        OR: [
-          {
-            profileOneId: profileId,
-            profileTwoId: friendProfileId,
-          },
-          {
-            profileOneId: friendProfileId,
-            profileTwoId: profileId,
-          },
-        ],
-      },
-    });
+  // async removeFriend(profileId, friendProfileId) {
+    // const deletedFriendships = await PRISMA_CLIENT.user_app_friendship.deleteMany({
+    //   where: {
+    //     OR: [
+    //       {
+    //         profileOneId: profileId,
+    //         profileTwoId: friendProfileId,
+    //       },
+    //       {
+    //         profileOneId: friendProfileId,
+    //         profileTwoId: profileId,
+    //       },
+    //     ],
+    //   },
+    // });
 
-    if (deletedFriendships.count === 0) {
-      throw new NotFoundError("Friendship");
-    }
+    // if (deletedFriendships.count === 0) {
+    //   throw new NotFoundError("Friendship");
+    // }
 
-    return deletedFriendships;
-  },
+    // return deletedFriendships;
+  // },
 };

@@ -8,12 +8,15 @@ import { addImageDTO, AlbumInfo, UpdateAlbum } from "./types/album.types";
 export const AlbumRepository: AlbumRepositoryContract = {
   async create(data, profileId) {
     try {
-      await PRISMA_CLIENT.album.create({
+      await PRISMA_CLIENT.profile_app_album.create({
         data: {
           name: data.name,
           theme: data.theme,
           year: data.year,
-          profileId,
+          profile_id: profileId,
+          created_at: new Date(),
+          is_default: false,
+          is_shown: true
         },
       });
     } catch (error) {
@@ -23,10 +26,10 @@ export const AlbumRepository: AlbumRepositoryContract = {
 
   async update(data, id) {
     try {
-      await PRISMA_CLIENT.album.update({
+      await PRISMA_CLIENT.profile_app_album.update({
         where: { id },
         data: {
-          name: data.theme,
+          name: data.name,
           theme: data.theme,
           year: data.year,
         },
@@ -37,7 +40,7 @@ export const AlbumRepository: AlbumRepositoryContract = {
   },
   async getInfo(id) {
     try {
-      return await PRISMA_CLIENT.album.findUnique({
+      return await PRISMA_CLIENT.profile_app_album.findUnique({
         where: { id },
       })
     } catch (error) {
@@ -47,7 +50,7 @@ export const AlbumRepository: AlbumRepositoryContract = {
 
   async getById(id: number) {
     try {
-      return await PRISMA_CLIENT.album.findUnique({
+      return await PRISMA_CLIENT.profile_app_album.findUnique({
         where: { id },
       });
     } catch (error) {
@@ -56,10 +59,10 @@ export const AlbumRepository: AlbumRepositoryContract = {
   },
   getAlbums: async (profileId: number) => {
     try{ 
-      const albums = await PRISMA_CLIENT.album.findMany({
-        where: { profileId },
+      const albums = await PRISMA_CLIENT.profile_app_album.findMany({
+        where: { profile_id: profileId },
         include: {
-          images: true,
+          profile_app_albumimage: true,
         },
       });
       console.log("albums", albums)
@@ -82,10 +85,12 @@ export const AlbumRepository: AlbumRepositoryContract = {
   
   addImage: async (data: addImageDTO) => {
     try{ 
-      await PRISMA_CLIENT.albumImage.create({
+      await PRISMA_CLIENT.profile_app_albumimage.create({
         data: {
           image: data.image,
-          albumId: data.albumId,
+          album_id: data.albumId,
+          is_shown: true,
+          created_at: new Date()
         },
       });
     } catch (error){
@@ -98,7 +103,7 @@ export const AlbumRepository: AlbumRepositoryContract = {
   
   deleteAlbum: async (id: number) => {
     try{ 
-      PRISMA_CLIENT.album.delete({
+      PRISMA_CLIENT.profile_app_album.delete({
         where: { id },
       });
     } catch (error){

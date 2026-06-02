@@ -93,20 +93,20 @@ export const FriendsController: FriendsControllerContracts = {
     }
   },
 
-  removeFriend: async (
-    req: Request<{ id: string }>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      await FriendsService.removeFriend(
-        res.locals.userId,
-        Number(req.params.id),
-      );
+  // removeFriend: async (
+  //   req: Request<{ id: string }>,
+  //   res: Response,
+  //   next: NextFunction,
+  // ) => {
+  //   try {
+  //     await FriendsService.removeFriend(
+  //       res.locals.userId,
+  //       Number(req.params.id),
+  //     );
 
-      res.status(204).send();
-    } catch (error) {
-      next(error);
-    }
-  },
+  //     res.status(204).send();
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // },
 };

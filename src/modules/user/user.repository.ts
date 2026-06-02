@@ -8,12 +8,13 @@ import { InternalServerError, NotFoundError } from "../../errors";
 export const UserRepository: RepoContract = {
   async findByEmail(email) {
     try {
-      const user = await PRISMA_CLIENT.user.findUnique({
+      const user = await PRISMA_CLIENT.user_app_user.findUnique({
         where: { email },
         omit: { password: true },
       });
       return user;
     } catch (error) {
+      console.log("error:", error)
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
           case PrismaErrorCodes.NOT_EXIST:
@@ -30,7 +31,7 @@ export const UserRepository: RepoContract = {
   },
   async findByUsername(username) {
     try {
-      const profile = await PRISMA_CLIENT.user.findUnique({
+      const profile = await PRISMA_CLIENT.user_app_user.findUnique({
         where: { username },
         omit: { password: true },
       });
@@ -52,10 +53,13 @@ export const UserRepository: RepoContract = {
   },
   async findByIdWithPassword(id) {
     try {
-      const user = PRISMA_CLIENT.user.findUnique({
+      const user = await PRISMA_CLIENT.user_app_user.findUniqueOrThrow({
         where: { id },
       });
-      return user;
+      return {
+        ...user,
+        // id: Number(user.id),
+      }
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         switch (error.code) {
@@ -73,15 +77,22 @@ export const UserRepository: RepoContract = {
   },
   async create(data: CreateUserPayload) {
     try {
-      const user = await PRISMA_CLIENT.user.create({
+      const user = await PRISMA_CLIENT.user_app_user.create({
         data: {
           email: data.email,
           password: data.password,
+          first_name: "",
+          last_name: "",
+          is_superuser: false,
+          is_staff: false,
+          is_active: false,
+          date_joined: new Date()
         },
         omit: { password: true },
       });
       return user;
     } catch (error) {
+      console.log("login error", error)
       if (error instanceof Error) {
         throw new InternalServerError(error.message);
       }
@@ -90,13 +101,13 @@ export const UserRepository: RepoContract = {
   },
   async findById(id: number) {
     try {
-      const user = await PRISMA_CLIENT.user.findUnique({
+      const user = await PRISMA_CLIENT.user_app_user.findUnique({
         where: { id },
         omit: {
           password: true,
         },
         include:{
-          profile: {
+          profile_app_profile: {
             select: {
               pseudonym: true,
               birth_date: true,
@@ -110,13 +121,13 @@ export const UserRepository: RepoContract = {
         throw new NotFoundError("User");
       }
       return {
-        id: user.id,
+        id: Number(user.id),
         email: user.email,
         username: user.username,
-        pseudonym: user?.profile?.pseudonym,
-        birth_date: user?.profile?.birth_date,
-        signature: user?.profile?.signature,
-        avatar: user?.profile?.avatar
+        pseudonym: user?.profile_app_profile?.pseudonym,
+        birth_date: String(user?.profile_app_profile?.birth_date),
+        signature: user?.profile_app_profile?.signature,
+        avatar: user?.profile_app_profile?.avatar
 
       };
     } catch (error) {
@@ -135,7 +146,7 @@ export const UserRepository: RepoContract = {
     }
   },
   async createProfile(data) {
-    await PRISMA_CLIENT.user.update({
+    await PRISMA_CLIENT.user_app_user.update({
       where: {
         id: data.userId
       },
@@ -144,10 +155,12 @@ export const UserRepository: RepoContract = {
       }
     })
 
-    return await PRISMA_CLIENT.profile.create({
+    return await PRISMA_CLIENT.profile_app_profile.create({
       data: {
-        userId: data.userId,
+        user_id: data.userId,
         pseudonym: data.pseudonym,
+        is_text_signature: false,
+        is_image_signature: false
       },
     });
   },
@@ -155,7 +168,7 @@ export const UserRepository: RepoContract = {
   async updateUserAndProfile(data, profileId) {
     try{
       try {
-        await PRISMA_CLIENT.profile.update({
+        await PRISMA_CLIENT.profile_app_profile.update({
           where: {id: profileId},
           data: {
             // firstName: data.name,
@@ -178,7 +191,7 @@ export const UserRepository: RepoContract = {
         }
         throw new InternalServerError();
       }
-      return await PRISMA_CLIENT.user.update({
+      return await PRISMA_CLIENT.user_app_user.update({
         where: { id: data.userId },
         data: {
           email: data.email,
@@ -202,11 +215,11 @@ export const UserRepository: RepoContract = {
   },
   async findProfileIdByUserId(userId) {
     try{
-      const profile = await PRISMA_CLIENT.profile.findFirst({
-        where: {userId}
+      const profile = await PRISMA_CLIENT.profile_app_profile.findFirst({
+        where: {user_id: userId}
       })
       if (profile){
-        return profile.id
+        return Number(profile.id)
       } else{
         throw new NotFoundError("Profile")
       }
@@ -219,12 +232,15 @@ export const UserRepository: RepoContract = {
   },
   async createAvatarAlbum(profileId) {
     try {
-      await PRISMA_CLIENT.album.create({
+      await PRISMA_CLIENT.profile_app_album.create({
         data:{
-          profileId,
+          profile_id: profileId,
           name: "Аватарки",
           theme: "Мої фото",
           year: 0,
+          is_shown: true,
+          is_default: true,
+          created_at: new Date()
           
         }
       })

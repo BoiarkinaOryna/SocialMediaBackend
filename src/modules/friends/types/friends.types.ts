@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 export type FriendRequest =
-  Prisma.FriendsRequestGetPayload<{}>;
+  Prisma.user_app_friendshipGetPayload<{}>;
 
 export type SendRequestDTO = {
   toProfileId: number;

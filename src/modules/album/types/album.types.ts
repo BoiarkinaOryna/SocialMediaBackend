@@ -1,20 +1,13 @@
 import { Prisma } from "@prisma/client";
 
 
-export type Album = Prisma.AlbumGetPayload<{}>;
+export type Album = Prisma.profile_app_albumGetPayload<{}>;
 
 export type AlbumInfo = {
   name: string;
-  theme: string;
-  year: number;
+  theme: string | null;
+  year: number | null;
 };
-
-export type AlbumInfoWithId = {
-  id: number;
-  name: string;
-  theme: string;
-  year: number;
-}
 
 export type UpdateAlbum = Partial<AlbumInfo>;
 

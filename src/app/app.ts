@@ -9,6 +9,11 @@ import { SocketManagerIO } from "../socket";
 import { authenticateSocketMiddleware } from "../middlewares/authenticate.middleware";
 import { UserSocketController } from "../modules/user/user.socket.controller";
 import { ChatSocketController } from "../modules/chats/chat.socket.controller";
+import { startTunnel } from "../config/db.tunnel";
+
+(BigInt as any).toJSON = function(){
+	return this.toString()
+}
 
 const app: Express = express();
 const httpServer = createServer(app);
@@ -29,7 +34,15 @@ app.use(logMiddleware);
 app.use(router);
 app.use(errorMiddleware);
 // console.log(uploadDir);
-httpServer.listen(env.PORT, env.HOST, () => {
-	console.log(`Server started on http://${env.HOST}:${env.PORT}`);
-});
+async function bootstrap(){
+	try{
+		await startTunnel()
+		httpServer.listen(env.PORT, env.HOST, () => {
+			console.log(`Server started on http://${env.HOST}:${env.PORT}`);
+		});
+	} catch(error){
+		console.log(error)
+	}
+}
 
+bootstrap()

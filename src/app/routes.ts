@@ -14,3 +14,4 @@ router.use("/users", UserRouter);
 router.use("/friends", FriendsRouter);
 router.use("/albums", authenticateMiddleware, AlbumRouter);
 router.use("/posts", authenticateMiddleware, PostRouter)
+router.use("/posts", PostRouter)

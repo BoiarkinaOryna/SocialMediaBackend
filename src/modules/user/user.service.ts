@@ -13,6 +13,7 @@ import nodemailer from "nodemailer";
 
 export const UserService: ServiceContract = {
   login: async (credentials) => {
+    console.log("email in login", credentials.email)
     const user = await UserRepository.findByEmail(credentials.email);
     if (!user) {
       throw new NotFoundError("User");
@@ -20,7 +21,7 @@ export const UserService: ServiceContract = {
     // if (!user.isVerified) {
     //   throw new AuthenticationError("Email not verified");
     // }
-    const userWithPassword = await UserRepository.findByIdWithPassword(user.id);
+    const userWithPassword = await UserRepository.findByIdWithPassword(Number(user.id));
     if (!userWithPassword) {
       throw new NotFoundError("User");
     }
@@ -36,23 +37,23 @@ export const UserService: ServiceContract = {
 
     const token = sign(
       {
-        id: userWithPassword.id,
+        id: Number(userWithPassword.id),
       },
       env.SECRET_KEY,
       {
         expiresIn: "7d",
       },
     );
-    console.log("user.id", user.id, token)
+    console.log("user.id", Number(user.id), token)
     return { token };
   },
   register: async (credentials) => {
-    const existingUserByEmail = await UserRepository.findByEmail(
-      credentials.email,
-    );
-    if (existingUserByEmail) {
-      throw new ConflictError(`User with email ${credentials.email}`);
-    }
+    // const existingUserByEmail = await UserRepository.findByEmail(
+    //   credentials.email,
+    // );
+    // if (existingUserByEmail) {
+    //   throw new ConflictError(`User with email ${credentials.email}`);
+    // }
 
     const hashedPassword = await hash(credentials.password, 10);
 
@@ -65,13 +66,13 @@ export const UserService: ServiceContract = {
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    await PRISMA_CLIENT.emailVerification.create({
-      data: {
-        userId: user.id,
-        code,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000), 
-      },
-    });
+    // await PRISMA_CLIENT.user_app_emailverification.create({
+    //   data: {
+    //     userId: user.id,
+    //     code,
+    //     expires_at: new Date(Date.now() + 10 * 60 * 1000), 
+    //   },
+    // });
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
@@ -111,32 +112,22 @@ export const UserService: ServiceContract = {
   verifyCode: async (data: VerifyCodeDTO) => {
     const { email, code } = data;
 
-    const user = await UserRepository.findByEmail(email)
-    if (!user) throw new NotFoundError("User")
-    const record = await PRISMA_CLIENT.emailVerification.findFirst({
-      where: {
-        userId: user.id,
-        code,
-      },
-    });
-
-    if (!record) {
-      throw new Error("Invalid code");
-    }
-
-    if (record.expires_at < new Date()) {
-      throw new Error("Code expired");
-    }
-
-    // await PRISMA_CLIENT.user.update({
-    //   where: { email },
-    //   data: { isVerified: true },
+    // const user = await UserRepository.findByEmail(email)
+    // if (!user) throw new NotFoundError("User")
+    // const record = await PRISMA_CLIENT.user_app_emailverification.findFirst({
+    //   where: {
+    //     userId: user.id,
+    //     code,
+    //   },
     // });
 
-    // await PRISMA_CLIENT.emailVerification.update({
-    //   where: { id: record.id },
-    //   data: { : true },
-    // });
+    // if (!record) {
+    //   throw new Error("Invalid code");
+    // }
+
+    // if (record.expires_at < new Date()) {
+    //   throw new Error("Code expired");
+    // }
 
   return "VERIFIED";
 }
