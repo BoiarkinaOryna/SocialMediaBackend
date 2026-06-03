@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { FriendsControllerContracts } from "./types/friends.contracts";
 import { FriendsService } from "./friends.service";
+import { BadRequestError } from "../../errors";
 
 export const FriendsController: FriendsControllerContracts = {
   sendRequest: async (req, res, next) => {
@@ -92,6 +93,20 @@ export const FriendsController: FriendsControllerContracts = {
       next(error);
     }
   },
+
+  getFriendInfo: async function (req, res, next) {
+    try{
+      const userId = Number(req.params.id)
+      if (!userId){
+        throw new BadRequestError("User id is required")
+      }
+      const userInfo = await FriendsService.getUserInfo(userId)
+      return res.json(userInfo)
+    }
+    catch(error){
+      next(error)
+    }
+  }
 
   // removeFriend: async (
   //   req: Request<{ id: string }>,

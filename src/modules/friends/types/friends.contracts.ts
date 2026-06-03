@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { SendRequestDTO } from "./friends.types";
+import { SendRequestDTO, UserInfo } from "./friends.types";
 
 export interface FriendsControllerContracts {
   sendRequest: (
@@ -30,6 +30,13 @@ export interface FriendsControllerContracts {
     next: NextFunction,
   ) => void;
 
+  getFriendInfo: (
+    req: Request<{id: string}, UserInfo>,
+    res: Response<UserInfo>,
+    next: NextFunction
+  ) => void;
+
+
   // removeFriend: (
   //   req: Request<{ id: string }>,
   //   res: Response,
@@ -50,6 +57,8 @@ export interface FriendsServiceContract {
 
   getRecommendations: (userId: number) => Promise<any>;
 
+  getUserInfo: (userId: number) => Promise<UserInfo>
+
   // removeFriend: (userId: number, friendProfileId: number) => Promise<any>;
 }
 
@@ -62,11 +71,13 @@ export interface FriendsRepositoryContract {
   
   acceptRequest: (userId: number, senderId: number) => Promise<any>;
 
-  getRequests: (profileId: number) => Promise<any>;
+  getRequests: (userId: number) => Promise<any>;
 
-  getFriends: (profileId: number) => Promise<any>;
+  getFriends: (userId: number) => Promise<any>;
 
-  getRecommendations: (profileId: number) => Promise<any>;
+  getRecommendations: (userId: number) => Promise<any>;
+
+  getUserInfo: (userId: number) => Promise<any>
 
   // removeFriend: (profileId: number, friendProfileId: number) => Promise<any>;
 }

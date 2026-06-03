@@ -1,4 +1,7 @@
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { PRISMA_CLIENT } from "../../config/client";
+import { InternalServerError, NotFoundError } from "../../errors";
+import { PrismaErrorCodes } from "../../types/error-codes";
 import type { FriendsRepositoryContract } from "./types/friends.contracts";
 
 const shuffleArray = <T>(items: T[]): T[] => {
@@ -77,6 +80,7 @@ export const FriendsRepository: FriendsRepositoryContract = {
     const requests = await PRISMA_CLIENT.user_app_friendship.findMany({
       where: {
         to_user_id: to_user_id,
+        status: "pending"
       }
     });
     console.log("requests", requests)
@@ -184,21 +188,6 @@ export const FriendsRepository: FriendsRepositoryContract = {
       excludedUserIds.add(Number(friendId));
     });
 
-    // const profiles = await PRISMA_CLIENT.profile.findMany({
-    //   where: {
-    //     id: {
-    //       notIn: [...excludedUserIds],
-    //     },
-    //   },
-    //   include: {
-    //     user: {
-    //       select: {
-    //         username: true,
-    //       },
-    //     },
-    //   },
-    // });
-
     const users = await PRISMA_CLIENT.user_app_user.findMany({
       where: {
         id: {
@@ -220,33 +209,90 @@ export const FriendsRepository: FriendsRepositoryContract = {
     // console.log("usersWithNumberId", usersWithNumberId)
 
     return usersWithNumberId
-
-    // return shuffleArray(users).map(({ user, ...profile }) => ({
-    //   ...profile,
-    //   username: user.username ?? null,
-    // }));
   },
 
-  // async removeFriend(profileId, friendProfileId) {
-    // const deletedFriendships = await PRISMA_CLIENT.user_app_friendship.deleteMany({
-    //   where: {
-    //     OR: [
-    //       {
-    //         profileOneId: profileId,
-    //         profileTwoId: friendProfileId,
-    //       },
-    //       {
-    //         profileOneId: friendProfileId,
-    //         profileTwoId: profileId,
-    //       },
-    //     ],
-    //   },
-    // });
+  getUserInfo: async function (userId) {
+    try{
+      const userWithBigInts = await PRISMA_CLIENT.user_app_user.findUnique({
+        where: {
+          id: userId
+        },
+        omit: {
+          password: true,
+          last_login: true,
+          is_superuser: true,
+          is_staff: true,
+          is_active: true,
+          date_joined: true,
+          email: true
+        },
+        include: {
+          profile_app_profile: {
+            select: {
+              avatar: true,
+              profile_app_album: {
+                select: {
+                  name: true,
+                  theme: true,
+                  year: true,
+                  profile_app_albumimage: true
+                }
+              }
+            },
+            
+          },
+          post_app_post: {
+            include: {
+              post_app_post_tags: true,
+              post_app_postheart: true,
+              post_app_postimage: true,
+              post_app_postlike: true,
+              post_app_postlink: true,
+              post_app_postview: true
+            }
+          },
+          user_app_friendship_user_app_friendship_to_user_idTouser_app_user: true
+        }
+      })
+      const userInfo = convertIds(userWithBigInts)
+      return userInfo
+    }
+    catch(error: any){
+      console.log("error:", error)
+        if (error instanceof PrismaClientKnownRequestError) {
+          switch (error.code) {
+            case PrismaErrorCodes.NOT_EXIST:
+              throw new NotFoundError("User")
+            default:
+              throw new InternalServerError();
+          }
+        }
+        if (error instanceof Error) {
+          throw new InternalServerError(error.message);
+        }
+        throw new InternalServerError();
+    }
+  }
 
-    // if (deletedFriendships.count === 0) {
-    //   throw new NotFoundError("Friendship");
-    // }
-
-    // return deletedFriendships;
-  // },
 };
+
+const bigintKeys = new Set(['id', 'user_id', 'post_id', "tag_id", "author_id", "year", "from_user_id", "to_user_id"]);
+
+function convertIds<T>(obj: T): T {
+  if (Array.isArray(obj)) {
+    obj.forEach(convertIds);
+    return obj;
+  }
+
+  if (obj !== null && typeof obj === 'object') {
+    for (const [key, value] of Object.entries(obj)) {
+      if (bigintKeys.has(key) && typeof value === 'bigint') {
+        (obj as Record<string, unknown>)[key] = Number(value);
+      } else {
+        convertIds(value);
+      }
+    }
+  }
+
+  return obj;
+}

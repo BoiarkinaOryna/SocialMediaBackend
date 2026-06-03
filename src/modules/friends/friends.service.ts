@@ -1,5 +1,4 @@
 import { BadRequestError, NotFoundError } from "../../errors";
-import { UserRepository } from "../user/user.repository";
 import { FriendsRepository } from "./friends.repository";
 import { FriendsServiceContract } from "./types/friends.contracts";
 
@@ -63,6 +62,10 @@ export const FriendsService: FriendsServiceContract = {
     // }
 
     return await FriendsRepository.getRecommendations(userId);
+  },
+
+  getUserInfo: async (userId) => {
+    return await FriendsRepository.getUserInfo(userId)
   },
 
   // removeFriend: async (userId, friendProfileId) => {

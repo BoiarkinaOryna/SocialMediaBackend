@@ -36,6 +36,12 @@ FriendsRouter.get(
   FriendsController.getRecommendations,
 );
 
+FriendsRouter.get(
+  "/:id",
+  authenticateMiddleware,
+  FriendsController.getFriendInfo
+)
+
 // FriendsRouter.delete(
 //   "/friend/:id",
 //   authenticateMiddleware,
